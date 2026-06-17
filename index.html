@@ -6,146 +6,108 @@
   <title>서울 아파트 실거래가 대시보드</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <style>
     :root {
-      --primary: #1a73e8;
-      --hangang: #0288d1;
-      --green: #2e7d32;
-      --bg: #f0f4f8;
-      --card: #fff;
-      --border: #e0e0e0;
-      --text: #202124;
-      --muted: #5f6368;
-      --shadow: 0 2px 10px rgba(0,0,0,0.1);
-      --radius: 12px;
+      --primary:#1a73e8; --hangang:#0288d1; --bg:#f0f4f8;
+      --card:#fff; --border:#e0e0e0; --text:#202124; --muted:#5f6368;
+      --shadow:0 2px 10px rgba(0,0,0,.1); --radius:12px;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);font-size:14px;}
 
-    /* ── 헤더 ── */
-    header {
-      background: linear-gradient(135deg, #1a73e8, #0d47a1);
-      color: #fff; padding: 14px 20px;
-      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
-      position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    header{
+      background:linear-gradient(135deg,#1a73e8,#0d47a1);color:#fff;
+      padding:13px 20px;display:flex;align-items:center;justify-content:space-between;
+      flex-wrap:wrap;gap:8px;position:sticky;top:0;z-index:1000;
+      box-shadow:0 2px 12px rgba(0,0,0,.2);
     }
-    header h1 { font-size: 17px; font-weight: 700; }
-    header h1 span { font-size: 12px; font-weight: 400; opacity: .85; margin-left: 8px; }
-    .header-right { display: flex; align-items: center; gap: 10px; font-size: 12px; opacity: .9; }
-    .badge { background: #ff6d00; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
-    .info-btn {
-      background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.5);
-      color: #fff; border-radius: 20px; padding: 4px 12px; font-size: 12px; cursor: pointer;
-    }
+    header h1{font-size:17px;font-weight:700;}
+    header h1 span{font-size:12px;font-weight:400;opacity:.85;margin-left:8px;}
+    .hdr-right{display:flex;align-items:center;gap:10px;font-size:12px;opacity:.9;}
+    .badge{background:#ff6d00;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;}
+    .info-btn{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.5);color:#fff;border-radius:20px;padding:4px 12px;font-size:12px;cursor:pointer;}
 
-    /* ── 메인 레이아웃 ── */
-    .layout { display: grid; grid-template-columns: 420px 1fr; gap: 16px; padding: 16px; max-width: 1500px; margin: 0 auto; }
-    @media(max-width:1000px) { .layout { grid-template-columns: 1fr; } }
+    .layout{display:grid;grid-template-columns:440px 1fr;gap:14px;padding:14px;max-width:1600px;margin:0 auto;}
+    @media(max-width:1050px){.layout{grid-template-columns:1fr;}}
 
-    /* ── 왼쪽 패널: 지도 ── */
-    .left-panel { display: flex; flex-direction: column; gap: 12px; }
-    .map-card {
-      background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
-      padding: 14px; position: relative;
-    }
-    .map-card h2 { font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 10px; }
-    .map-wrap { width: 100%; aspect-ratio: 560/520; position: relative; }
-    .map-wrap svg { width: 100%; height: 100%; }
+    /* 왼쪽 */
+    .left{display:flex;flex-direction:column;gap:12px;}
+    .map-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px;}
+    .map-card h2{font-size:13px;font-weight:700;color:var(--muted);margin-bottom:8px;}
+    #leaflet-map{height:380px;border-radius:8px;border:1px solid var(--border);}
+    .legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;font-size:11px;color:var(--muted);}
+    .leg-item{display:flex;align-items:center;gap:5px;}
+    .leg-dot{width:12px;height:12px;border-radius:2px;}
+    .grad-bar{display:inline-block;width:60px;height:8px;border-radius:4px;vertical-align:middle;margin:0 4px;}
 
-    /* 지도 구 스타일 (JS에서 동적 색상 적용) */
-    .gu { cursor: pointer; transition: opacity .15s, filter .15s; }
-    .gu:hover { opacity: .8; filter: brightness(0.9); }
-    .gu.selected { filter: brightness(0.75); stroke-width: 2.5 !important; }
-    .gu-label { font-family: 'Noto Sans KR', sans-serif; font-size: 9px; font-weight: 700; fill: #333; pointer-events: none; text-anchor: middle; }
+    .gu-info{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;min-height:82px;}
+    .gu-placeholder{color:var(--muted);font-size:13px;text-align:center;padding:14px 0;}
+    .gu-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;}
+    .gu-stat .v{font-size:18px;font-weight:700;color:var(--primary);}
+    .gu-stat .l{font-size:11px;color:var(--muted);}
 
-    /* 범례 */
-    .legend { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; font-size: 11px; }
-    .legend-item { display: flex; align-items: center; gap: 5px; }
-    .legend-dot { width: 12px; height: 12px; border-radius: 2px; }
+    /* 오른쪽 */
+    .right{display:flex;flex-direction:column;gap:12px;}
+    .sum-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+    @media(max-width:700px){.sum-cards{grid-template-columns:repeat(3,1fr);}}
+    .sum-card{background:var(--card);border-radius:var(--radius);padding:12px;box-shadow:var(--shadow);text-align:center;}
+    .sum-card .v{font-size:20px;font-weight:700;color:var(--primary);}
+    .sum-card .l{font-size:11px;color:var(--muted);margin-top:2px;}
 
-    /* 선택된 구 정보 */
-    .gu-info {
-      background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
-      padding: 14px; min-height: 80px;
-    }
-    .gu-info h3 { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
-    .gu-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    .gu-stat { text-align: center; }
-    .gu-stat .val { font-size: 16px; font-weight: 700; color: var(--primary); }
-    .gu-stat .lbl { font-size: 11px; color: var(--muted); }
-    .gu-placeholder { color: var(--muted); font-size: 13px; text-align: center; padding: 16px 0; }
+    .filter-card{background:var(--card);border-radius:var(--radius);padding:12px;box-shadow:var(--shadow);}
+    .filter-card h2{font-size:13px;font-weight:700;color:var(--muted);margin-bottom:10px;}
+    .fg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;align-items:end;}
+    .fg label{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px;}
+    .fg select,.fg input[type=text]{width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;background:#fff;}
+    .rr{display:flex;align-items:center;gap:6px;}
+    .rr input[type=range]{flex:1;accent-color:var(--primary);}
+    .rv{font-size:11px;font-weight:700;color:var(--primary);min-width:48px;text-align:right;}
+    .tog-row{display:flex;align-items:center;gap:8px;}
+    .tog{position:relative;width:40px;height:22px;flex-shrink:0;}
+    .tog input{opacity:0;width:0;height:0;}
+    .tog .sl{position:absolute;inset:0;background:#ccc;border-radius:22px;transition:.3s;cursor:pointer;}
+    .tog .sl:before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s;}
+    .tog input:checked+.sl{background:var(--hangang);}
+    .tog input:checked+.sl:before{transform:translateX(18px);}
+    .btn-reset{padding:7px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;color:var(--muted);}
+    .btn-reset:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
 
-    /* ── 오른쪽 패널 ── */
-    .right-panel { display: flex; flex-direction: column; gap: 12px; }
+    .charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;}
+    .ch-card{background:var(--card);border-radius:var(--radius);padding:12px;box-shadow:var(--shadow);}
+    .ch-card h3{font-size:13px;font-weight:700;color:var(--muted);margin-bottom:8px;}
+    .ch-wrap{position:relative;height:185px;}
 
-    /* 요약 카드 */
-    .summary-cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-    @media(max-width:700px) { .summary-cards { grid-template-columns: repeat(3, 1fr); } }
-    .summary-card { background: var(--card); border-radius: var(--radius); padding: 12px; box-shadow: var(--shadow); text-align: center; }
-    .summary-card .val { font-size: 20px; font-weight: 700; color: var(--primary); }
-    .summary-card .lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
-
-    /* 필터 */
-    .filter-card { background: var(--card); border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow); }
-    .filter-card h2 { font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 10px; }
-    .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; align-items: end; }
-    .fg label { display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
-    .fg select, .fg input[type=text] {
-      width: 100%; padding: 7px 10px; border: 1px solid var(--border);
-      border-radius: 8px; font-size: 12px; background: #fff;
-    }
-    .range-row { display: flex; align-items: center; gap: 6px; }
-    .range-row input[type=range] { flex: 1; accent-color: var(--primary); }
-    .rval { font-size: 11px; font-weight: 700; color: var(--primary); min-width: 50px; text-align: right; }
-    .toggle-row { display: flex; align-items: center; gap: 8px; }
-    .toggle { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
-    .toggle input { opacity: 0; width: 0; height: 0; }
-    .toggle .sl { position: absolute; inset: 0; background: #ccc; border-radius: 22px; transition: .3s; cursor: pointer; }
-    .toggle .sl:before { content:''; position:absolute; width:16px; height:16px; left:3px; top:3px; background:#fff; border-radius:50%; transition:.3s; }
-    .toggle input:checked + .sl { background: var(--hangang); }
-    .toggle input:checked + .sl:before { transform: translateX(18px); }
-    .btn-reset { padding: 7px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; color: var(--muted); }
-    .btn-reset:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
-
-    /* 차트 */
-    .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
-    .chart-card { background: var(--card); border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow); }
-    .chart-card h3 { font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 10px; }
-    .chart-wrap { position: relative; height: 190px; }
-
-    /* 테이블 */
-    .table-card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
-    .table-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; flex-wrap: wrap; gap: 8px; border-bottom: 1px solid #f1f3f4; }
-    .table-header h2 { font-size: 14px; font-weight: 700; }
-    .table-count { font-size: 12px; color: var(--muted); }
-    .search-box { padding: 7px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; width: 180px; }
-    .table-scroll { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; }
-    thead tr { background: #f8f9fa; }
-    th { padding: 9px 12px; text-align: left; font-size: 11px; font-weight: 700; color: var(--muted); white-space: nowrap; cursor: pointer; }
-    th:hover { color: var(--primary); }
-    th.sorted { color: var(--primary); }
-    td { padding: 9px 12px; border-top: 1px solid #f1f3f4; font-size: 12px; white-space: nowrap; }
-    tr:hover td { background: #f8f9ff; cursor: pointer; }
-    .price-cell { font-weight: 700; color: var(--primary); }
-    .htag { background: #e1f5fe; color: var(--hangang); font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 4px; }
-    .pagination { display: flex; align-items: center; justify-content: center; gap: 5px; padding: 12px; }
-    .pagination button { padding: 5px 10px; border: 1px solid var(--border); border-radius: 6px; background: #fff; cursor: pointer; font-size: 12px; }
-    .pagination button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-    .pagination button:disabled { opacity: .4; cursor: default; }
+    .tbl-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+    .tbl-hdr{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;flex-wrap:wrap;gap:8px;border-bottom:1px solid #f1f3f4;}
+    .tbl-hdr h2{font-size:14px;font-weight:700;}
+    .tbl-cnt{font-size:12px;color:var(--muted);}
+    .srch{padding:6px 12px;border:1px solid var(--border);border-radius:8px;font-size:12px;width:170px;}
+    .tbl-scroll{overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;}
+    thead tr{background:#f8f9fa;}
+    th{padding:9px 11px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;cursor:pointer;}
+    th:hover,th.sorted{color:var(--primary);}
+    td{padding:9px 11px;border-top:1px solid #f1f3f4;font-size:12px;white-space:nowrap;}
+    tr:hover td{background:#f8f9ff;cursor:pointer;}
+    .pc{font-weight:700;color:var(--primary);}
+    .htag{background:#e1f5fe;color:var(--hangang);font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;}
+    .pg{display:flex;align-items:center;justify-content:center;gap:5px;padding:11px;}
+    .pg button{padding:5px 10px;border:1px solid var(--border);border-radius:6px;background:#fff;cursor:pointer;font-size:12px;}
+    .pg button.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+    .pg button:disabled{opacity:.4;cursor:default;}
 
     /* 모달 */
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; align-items: center; justify-content: center; padding: 16px; }
-    .modal-overlay.open { display: flex; }
-    .modal { background: #fff; border-radius: var(--radius); max-width: 560px; width: 100%; max-height: 80vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,.2); }
-    .modal-hdr { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: #fff; }
-    .modal-hdr h3 { font-size: 15px; font-weight: 700; }
-    .modal-close { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--muted); }
-    .modal-body { padding: 16px 18px; font-size: 13px; line-height: 1.8; }
-    .modal-body table { width: 100%; }
-    .modal-body th { font-size: 12px; width: 40%; }
-    .modal-body td { font-size: 13px; }
-    .naver-link { display:inline-block; margin-top:12px; padding:8px 16px; background:#03c75a; color:#fff; border-radius:8px; text-decoration:none; font-size:13px; font-weight:700; }
+    .mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;align-items:center;justify-content:center;padding:16px;}
+    .mo.open{display:flex;}
+    .mo-box{background:#fff;border-radius:var(--radius);max-width:560px;width:100%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.2);}
+    .mo-hdr{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid var(--border);position:sticky;top:0;background:#fff;}
+    .mo-hdr h3{font-size:15px;font-weight:700;}
+    .mo-cls{background:none;border:none;font-size:18px;cursor:pointer;color:var(--muted);}
+    .mo-body{padding:15px 18px;font-size:13px;line-height:1.8;}
+    .mo-body table{width:100%;}
+    .mo-body th{font-size:12px;width:40%;color:var(--muted);}
+    .naver-btn{display:inline-block;margin-top:12px;padding:8px 16px;background:#03c75a;color:#fff;border-radius:8px;text-decoration:none;font-size:13px;font-weight:700;}
   </style>
 </head>
 <body>
@@ -153,151 +115,90 @@
 <header>
   <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
     <h1>🏙️ 서울 아파트 실거래가 <span>25억 이하 · 84㎡ 이상</span></h1>
-    <button class="info-btn" onclick="document.getElementById('info-modal').classList.add('open')">ℹ️ 분석 기준 &amp; 방법론</button>
+    <button class="info-btn" onclick="document.getElementById('info-mo').classList.add('open')">ℹ️ 분석 기준 &amp; 방법론</button>
   </div>
-  <div class="header-right">
+  <div class="hdr-right">
     <span id="sample-badge" class="badge" style="display:none">샘플 데이터</span>
-    <span id="updated-at">업데이트: 로딩 중...</span>
+    <span id="updated-at">로딩 중...</span>
   </div>
 </header>
 
 <div class="layout">
-  <!-- ── 왼쪽: 지도 패널 ── -->
-  <div class="left-panel">
+  <!-- 왼쪽: 지도 -->
+  <div class="left">
     <div class="map-card">
       <h2>📍 서울시 구별 거래 현황 <small style="font-weight:400">— 구 클릭 시 필터</small></h2>
-      <div class="map-wrap" id="map-wrap">
-        <!-- SVG 지도는 JS에서 로드 -->
-        <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#999;font-size:13px;">지도 로딩 중...</div>
-      </div>
-      <div class="legend" style="margin-top:10px;">
-        <div class="legend-item"><div class="legend-dot" style="background:#b3e5fc;border:1px solid #0288d1"></div><span>한강 인근</span></div>
-        <div class="legend-item"><div class="legend-dot" style="background:#c8e6c9;border:1px solid #2e7d32"></div><span>기타 지역</span></div>
-        <div class="legend-item"><div class="legend-dot" style="background:#ef9a9a;border:1px solid #c62828"></div><span>선택된 구</span></div>
-      </div>
-      <!-- 색상 범례 (거래량) -->
-      <div style="margin-top:8px;font-size:11px;color:var(--muted)">
-        거래량: <span style="display:inline-block;width:50px;height:8px;background:linear-gradient(to right,#e3f2fd,#0d47a1);vertical-align:middle;border-radius:4px;margin:0 4px"></span> 많음
+      <div id="leaflet-map"></div>
+      <div class="legend">
+        <div class="leg-item"><div class="leg-dot" style="background:#b3e5fc;border:1px solid #0288d1"></div>한강 인근</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#c8e6c9;border:1px solid #388e3c"></div>기타</div>
+        <div class="leg-item">거래량: <span class="grad-bar" style="background:linear-gradient(to right,#e3f2fd,#0d47a1)"></span>많음</div>
       </div>
     </div>
-
     <div class="gu-info" id="gu-info">
-      <p class="gu-placeholder">구를 클릭하면 상세 정보가 표시됩니다</p>
+      <p class="gu-placeholder">지도에서 구를 클릭하면 상세 정보가 표시됩니다</p>
     </div>
   </div>
 
-  <!-- ── 오른쪽: 데이터 패널 ── -->
-  <div class="right-panel">
-    <!-- 요약 -->
-    <div class="summary-cards">
-      <div class="summary-card"><div class="val" id="sum-total">-</div><div class="lbl">총 거래건수</div></div>
-      <div class="summary-card"><div class="val" id="sum-avg">-</div><div class="lbl">평균 거래가</div></div>
-      <div class="summary-card"><div class="val" id="sum-min">-</div><div class="lbl">최저 거래가</div></div>
-      <div class="summary-card"><div class="val" id="sum-max">-</div><div class="lbl">최고 거래가</div></div>
-      <div class="summary-card"><div class="val" id="sum-gu">-</div><div class="lbl">거래 발생 구</div></div>
+  <!-- 오른쪽: 데이터 -->
+  <div class="right">
+    <div class="sum-cards">
+      <div class="sum-card"><div class="v" id="s-total">-</div><div class="l">총 거래건수</div></div>
+      <div class="sum-card"><div class="v" id="s-avg">-</div><div class="l">평균 거래가</div></div>
+      <div class="sum-card"><div class="v" id="s-min">-</div><div class="l">최저 거래가</div></div>
+      <div class="sum-card"><div class="v" id="s-max">-</div><div class="l">최고 거래가</div></div>
+      <div class="sum-card"><div class="v" id="s-gu">-</div><div class="l">거래 발생 구</div></div>
     </div>
 
-    <!-- 필터 -->
     <div class="filter-card">
       <h2>🔍 필터</h2>
-      <div class="filter-grid">
-        <div class="fg">
-          <label>구 선택</label>
-          <select id="filter-gu"><option value="">전체 구</option></select>
-        </div>
-        <div class="fg">
-          <label>최대 거래가</label>
-          <div class="range-row">
-            <input type="range" id="slider-max" min="10" max="25" step="1" value="25">
-            <span class="rval" id="val-max">25억</span>
-          </div>
-        </div>
-        <div class="fg">
-          <label>최소 거래가</label>
-          <div class="range-row">
-            <input type="range" id="slider-min" min="5" max="25" step="1" value="10">
-            <span class="rval" id="val-min">10억</span>
-          </div>
-        </div>
-        <div class="fg">
-          <label>최소 전용면적</label>
-          <div class="range-row">
-            <input type="range" id="slider-area" min="84" max="200" step="1" value="84">
-            <span class="rval" id="val-area">84㎡~</span>
-          </div>
-        </div>
-        <div class="fg">
-          <label>건축연도 이후</label>
-          <select id="filter-year">
-            <option value="">전체</option>
-            <option value="2010">2010년~</option>
-            <option value="2015">2015년~</option>
-            <option value="2018">2018년~</option>
-            <option value="2020">2020년~</option>
-          </select>
-        </div>
-        <div class="fg">
-          <label>&nbsp;</label>
-          <div class="toggle-row">
-            <label class="toggle">
-              <input type="checkbox" id="toggle-hangang">
-              <span class="sl"></span>
-            </label>
-            <span style="font-size:12px;font-weight:600">한강 인근만</span>
-          </div>
-        </div>
-        <div class="fg" style="display:flex;flex-direction:column;justify-content:flex-end;">
-          <input type="text" class="search-box" id="filter-search" placeholder="단지명 검색..." style="width:100%">
-        </div>
-        <div class="fg" style="display:flex;flex-direction:column;justify-content:flex-end;">
-          <button class="btn-reset" id="btn-reset">초기화</button>
-        </div>
+      <div class="fg-grid">
+        <div class="fg"><label>구 선택</label><select id="f-gu"><option value="">전체 구</option></select></div>
+        <div class="fg"><label>최대 거래가</label><div class="rr"><input type="range" id="s-max-p" min="10" max="25" step="1" value="25"><span class="rv" id="v-max">25억</span></div></div>
+        <div class="fg"><label>최소 거래가</label><div class="rr"><input type="range" id="s-min-p" min="5" max="25" step="1" value="10"><span class="rv" id="v-min">10억</span></div></div>
+        <div class="fg"><label>최소 전용면적</label><div class="rr"><input type="range" id="s-area" min="84" max="200" step="1" value="84"><span class="rv" id="v-area">84㎡~</span></div></div>
+        <div class="fg"><label>건축연도 이후</label><select id="f-year"><option value="">전체</option><option value="2010">2010년~</option><option value="2015">2015년~</option><option value="2018">2018년~</option><option value="2020">2020년~</option></select></div>
+        <div class="fg"><label>&nbsp;</label><div class="tog-row"><label class="tog"><input type="checkbox" id="t-hangang"><span class="sl"></span></label><span style="font-size:12px;font-weight:600">한강 인근만</span></div></div>
+        <div class="fg" style="display:flex;flex-direction:column;justify-content:flex-end;"><input type="text" class="srch" id="f-search" placeholder="단지명 검색..." style="width:100%"></div>
+        <div class="fg" style="display:flex;flex-direction:column;justify-content:flex-end;"><button class="btn-reset" id="btn-reset">초기화</button></div>
       </div>
     </div>
 
-    <!-- 차트 -->
     <div class="charts-grid">
-      <div class="chart-card"><h3>구별 평균 거래가</h3><div class="chart-wrap"><canvas id="chart-bar"></canvas></div></div>
-      <div class="chart-card"><h3>월별 거래량 추이</h3><div class="chart-wrap"><canvas id="chart-line"></canvas></div></div>
-      <div class="chart-card"><h3>면적대별 분포</h3><div class="chart-wrap"><canvas id="chart-area"></canvas></div></div>
+      <div class="ch-card"><h3>구별 평균 거래가</h3><div class="ch-wrap"><canvas id="c-bar"></canvas></div></div>
+      <div class="ch-card"><h3>월별 거래량 추이</h3><div class="ch-wrap"><canvas id="c-line"></canvas></div></div>
+      <div class="ch-card"><h3>면적대별 분포</h3><div class="ch-wrap"><canvas id="c-donut"></canvas></div></div>
     </div>
 
-    <!-- 테이블 -->
-    <div class="table-card">
-      <div class="table-header">
-        <h2>거래 내역 <span class="table-count" id="table-count"></span></h2>
+    <div class="tbl-card">
+      <div class="tbl-hdr">
+        <h2>거래 내역 <span class="tbl-cnt" id="tbl-cnt"></span></h2>
+        <input type="text" class="srch" id="f-search2" placeholder="단지명 검색...">
       </div>
-      <div class="table-scroll">
+      <div class="tbl-scroll">
         <table>
-          <thead>
-            <tr>
-              <th data-key="단지명">단지명 ↕</th>
-              <th data-key="구">구 ↕</th>
-              <th data-key="전용면적">면적 ↕</th>
-              <th data-key="층">층 ↕</th>
-              <th data-key="건축연도">건축연도 ↕</th>
-              <th data-key="거래금액" class="sorted">거래금액 ↓</th>
-              <th data-key="거래일">거래일 ↕</th>
-            </tr>
-          </thead>
-          <tbody id="tbody">
-            <tr><td colspan="7" style="text-align:center;padding:40px;color:#999">데이터 로딩 중...</td></tr>
-          </tbody>
+          <thead><tr>
+            <th data-k="단지명">단지명 ↕</th>
+            <th data-k="구">구 ↕</th>
+            <th data-k="전용면적">면적 ↕</th>
+            <th data-k="층">층 ↕</th>
+            <th data-k="건축연도">건축연도 ↕</th>
+            <th data-k="거래금액" class="sorted">거래금액 ↓</th>
+            <th data-k="거래일">거래일 ↕</th>
+          </tr></thead>
+          <tbody id="tbody"><tr><td colspan="7" style="text-align:center;padding:40px;color:#999">로딩 중...</td></tr></tbody>
         </table>
       </div>
-      <div class="pagination" id="pagination"></div>
+      <div class="pg" id="pg"></div>
     </div>
   </div>
 </div>
 
 <!-- 분석 기준 모달 -->
-<div class="modal-overlay" id="info-modal" onclick="if(event.target===this)this.classList.remove('open')">
-  <div class="modal">
-    <div class="modal-hdr">
-      <h3>📊 분석 기준 &amp; 방법론</h3>
-      <button class="modal-close" onclick="document.getElementById('info-modal').classList.remove('open')">✕</button>
-    </div>
-    <div class="modal-body">
+<div class="mo" id="info-mo" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="mo-box">
+    <div class="mo-hdr"><h3>📊 분석 기준 &amp; 방법론</h3><button class="mo-cls" onclick="document.getElementById('info-mo').classList.remove('open')">✕</button></div>
+    <div class="mo-body">
       <h4 style="color:#1a73e8;margin-bottom:6px">📌 데이터 출처</h4>
       <p>국토교통부 <strong>아파트 매매 실거래가 상세 자료</strong> API (공공데이터포털)<br>실제 신고된 계약 건만 포함, 추정·호가 제외</p>
       <hr style="margin:12px 0;border:none;border-top:1px solid #eee">
@@ -307,8 +208,11 @@
       <h4 style="color:#1a73e8;margin-bottom:6px">🏞️ 한강 인근 기준</h4>
       <p>마포·용산·영등포·성동·광진·동작·강동·강남·서초·송파구</p>
       <hr style="margin:12px 0;border:none;border-top:1px solid #eee">
+      <h4 style="color:#1a73e8;margin-bottom:6px">🗺️ 지도</h4>
+      <p>OpenStreetMap 기반 Leaflet.js 지도. 구 경계는 근사치이며 정확한 행정 경계와 일부 차이가 있을 수 있습니다.</p>
+      <hr style="margin:12px 0;border:none;border-top:1px solid #eee">
       <h4 style="color:#1a73e8;margin-bottom:6px">🔄 업데이트 주기</h4>
-      <p>GitHub Actions 매일 오전 9시(KST) 자동 갱신<br>국토부 신고 의무 기한(30일)으로 최신 거래는 1~4주 지연 가능</p>
+      <p>GitHub Actions 매일 오전 9시(KST) 자동 갱신. 국토부 신고 의무 기한(30일)으로 1~4주 지연 가능</p>
       <hr style="margin:12px 0;border:none;border-top:1px solid #eee">
       <p style="color:#999;font-size:11px">⚠️ 개인 투자 참고용이며 실제 매수 결정 전 전문가 확인을 권장합니다.</p>
     </div>
@@ -316,287 +220,292 @@
 </div>
 
 <!-- 단지 상세 모달 -->
-<div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this)this.classList.remove('open')">
-  <div class="modal">
-    <div class="modal-hdr">
-      <h3 id="modal-title"></h3>
-      <button class="modal-close" onclick="document.getElementById('modal-overlay').classList.remove('open')">✕</button>
-    </div>
-    <div class="modal-body" id="modal-body"></div>
+<div class="mo" id="detail-mo" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="mo-box">
+    <div class="mo-hdr"><h3 id="mo-title"></h3><button class="mo-cls" onclick="document.getElementById('detail-mo').classList.remove('open')">✕</button></div>
+    <div class="mo-body" id="mo-body"></div>
   </div>
 </div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
 const DATA_URL = './data/transactions.json';
-const SVG_URL  = './data/seoul_map.svg';
-const PAGE_SIZE = 20;
-const HANGANG_SET = new Set(['마포구','용산구','영등포구','성동구','광진구','동작구','강동구','강남구','서초구','송파구']);
+const GEO_URL  = './data/seoul_districts.geojson';
+const PS = 20;
+const HG = new Set(['마포구','용산구','영등포구','성동구','광진구','동작구','강동구','강남구','서초구','송파구']);
 
-let allData = null, filtered = [], currentPage = 1;
-let sortKey = '거래금액', sortAsc = false;
-let selectedGu = null;
-let charts = {};
+let allData=null, geojsonData=null, filtered=[], page=1;
+let sortK='거래금액', sortAsc=false, selGu=null;
+let charts={}, leafletMap=null, guLayers={};
 
-// ── 데이터 + 지도 로드 ──
-async function init() {
-  const [dataRes, svgRes] = await Promise.all([
-    fetch(DATA_URL + '?t=' + Date.now()),
-    fetch(SVG_URL + '?t=' + Date.now())
+// ── 초기화 ──
+async function init(){
+  const [dr, gr] = await Promise.all([
+    fetch(DATA_URL+'?t='+Date.now()),
+    fetch(GEO_URL+'?t='+Date.now())
   ]);
-  allData = await dataRes.json();
-  const svgText = await svgRes.text();
+  allData = await dr.json();
+  geojsonData = await gr.json();
 
-  document.getElementById('updated-at').textContent = '업데이트: ' + allData.updated_at;
-  if (allData.note) document.getElementById('sample-badge').style.display = 'inline';
+  document.getElementById('updated-at').textContent = '업데이트: '+allData.updated_at;
+  if(allData.note) document.getElementById('sample-badge').style.display='inline';
 
-  // 지도 삽입
-  document.getElementById('map-wrap').innerHTML = svgText;
-  initMap();
   initFilters();
+  initMap();
   applyFilters();
 }
 
-// ── 지도 초기화 ──
-function initMap() {
-  // 구별 거래수로 색상 계산
-  const counts = {};
-  allData.transactions.forEach(t => { counts[t.구] = (counts[t.구]||0) + 1; });
-  const maxCount = Math.max(...Object.values(counts), 1);
+// ── Leaflet 지도 ──
+function initMap(){
+  leafletMap = L.map('leaflet-map', {
+    center:[37.5630, 126.9784], zoom:11,
+    zoomControl:true, scrollWheelZoom:true
+  });
 
-  document.querySelectorAll('.gu').forEach(el => {
-    const name = el.dataset.gu;
-    if (!name) return;
-    const cnt = counts[name] || 0;
-    const ratio = cnt / maxCount;
-    const isHangang = HANGANG_SET.has(name);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
+    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+    subdomains:'abcd', maxZoom:19
+  }).addTo(leafletMap);
 
-    // 거래량에 따른 색상 (한강 인근: 파랑 계열, 기타: 초록 계열)
-    if (isHangang) {
-      const r = Math.round(179 - ratio * 120);
-      const g = Math.round(229 - ratio * 80);
-      const b = 252;
-      el.style.fill = `rgb(${r},${g},${b})`;
-      el.style.stroke = '#0288d1';
-    } else {
-      const r = Math.round(200 - ratio * 80);
-      const g = Math.round(230 - ratio * 70);
-      const b = Math.round(200 - ratio * 80);
-      el.style.fill = `rgb(${r},${g},${b})`;
-      el.style.stroke = '#2e7d32';
-    }
+  // 구별 거래수 계산
+  const counts={};
+  allData.transactions.forEach(t=>{ counts[t.구]=(counts[t.구]||0)+1; });
+  const maxCnt = Math.max(...Object.values(counts),1);
 
-    el.addEventListener('click', () => onGuClick(name, el));
+  geojsonData.features.forEach(feat=>{
+    const name = feat.properties.name;
+    const isH  = feat.properties.hangang;
+    const cnt  = counts[name]||0;
+    const ratio = cnt/maxCnt;
+
+    const fillColor = isH
+      ? `rgb(${Math.round(179-ratio*120)},${Math.round(229-ratio*80)},252)`
+      : `rgb(${Math.round(200-ratio*80)},${Math.round(230-ratio*70)},${Math.round(200-ratio*80)})`;
+
+    const layer = L.geoJSON(feat, {
+      style:{
+        fillColor, fillOpacity:0.7,
+        color: isH?'#0288d1':'#388e3c',
+        weight:1.5
+      }
+    }).addTo(leafletMap);
+
+    layer.on('click', ()=> onGuClick(name, layer, isH));
+    layer.on('mouseover', ()=>{ if(selGu!==name) layer.setStyle({fillOpacity:0.9,weight:2}); });
+    layer.on('mouseout',  ()=>{ if(selGu!==name) layer.setStyle({fillOpacity:0.7,weight:1.5}); });
+
+    // 구 이름 라벨
+    const center = layer.getBounds().getCenter();
+    L.marker(center,{
+      icon: L.divIcon({
+        className:'',
+        html:`<div style="font-family:'Noto Sans KR',sans-serif;font-size:10px;font-weight:700;color:#333;white-space:nowrap;text-shadow:0 0 3px #fff,0 0 3px #fff">${name.replace('구','')}</div>`,
+        iconAnchor:[15,8]
+      })
+    }).addTo(leafletMap);
+
+    guLayers[name] = {layer, isH};
   });
 }
 
-function onGuClick(name, el) {
-  if (selectedGu === name) {
-    // 선택 해제
-    selectedGu = null;
-    document.querySelectorAll('.gu').forEach(e => e.classList.remove('selected'));
-    document.getElementById('filter-gu').value = '';
-    document.getElementById('gu-info').innerHTML = '<p class="gu-placeholder">구를 클릭하면 상세 정보가 표시됩니다</p>';
+function onGuClick(name, layer, isH){
+  if(selGu===name){
+    selGu=null;
+    resetMapStyles();
+    document.getElementById('gu-info').innerHTML='<p class="gu-placeholder">지도에서 구를 클릭하면 상세 정보가 표시됩니다</p>';
+    document.getElementById('f-gu').value='';
   } else {
-    selectedGu = name;
-    document.querySelectorAll('.gu').forEach(e => e.classList.remove('selected'));
-    el.classList.add('selected');
-    document.getElementById('filter-gu').value = '';
+    selGu=name;
+    resetMapStyles();
+    layer.setStyle({fillOpacity:0.95,weight:3,color:'#e53935'});
+    document.getElementById('f-gu').value='';
     showGuInfo(name);
   }
   applyFilters();
 }
 
-function showGuInfo(name) {
-  const stats = allData.district_stats.find(s => s.구 === name);
-  if (!stats) return;
-  const isH = HANGANG_SET.has(name);
-  document.getElementById('gu-info').innerHTML = `
-    <h3>${name} ${isH ? '<span style="font-size:11px;color:#0288d1;font-weight:400">한강 인근</span>' : ''}</h3>
+function resetMapStyles(){
+  const counts={};
+  filtered.forEach(t=>{ counts[t.구]=(counts[t.구]||0)+1; });
+  const maxC = Math.max(...Object.values(counts),1);
+  Object.entries(guLayers).forEach(([name,{layer,isH}])=>{
+    const ratio=(counts[name]||0)/maxC;
+    const fc = isH
+      ? `rgb(${Math.round(179-ratio*120)},${Math.round(229-ratio*80)},252)`
+      : `rgb(${Math.round(200-ratio*80)},${Math.round(230-ratio*70)},${Math.round(200-ratio*80)})`;
+    layer.setStyle({fillColor:fc,fillOpacity:0.7,color:isH?'#0288d1':'#388e3c',weight:1.5});
+  });
+}
+
+function showGuInfo(name){
+  const s = allData.district_stats.find(x=>x.구===name);
+  if(!s) return;
+  document.getElementById('gu-info').innerHTML=`
+    <h3 style="font-size:15px;font-weight:700;margin-bottom:8px">${name} ${HG.has(name)?'<span style="font-size:11px;color:#0288d1;font-weight:400">한강 인근</span>':''}</h3>
     <div class="gu-stats">
-      <div class="gu-stat"><div class="val">${stats.거래수}</div><div class="lbl">거래건수</div></div>
-      <div class="gu-stat"><div class="val">${stats.평균가_억}억</div><div class="lbl">평균 거래가</div></div>
-      <div class="gu-stat"><div class="val">${stats.최저가_억}~${stats.최고가_억}억</div><div class="lbl">거래 범위</div></div>
+      <div class="gu-stat"><div class="v">${s.거래수}</div><div class="l">거래건수</div></div>
+      <div class="gu-stat"><div class="v">${s.평균가_억}억</div><div class="l">평균 거래가</div></div>
+      <div class="gu-stat"><div class="v">${s.최저가_억}~${s.최고가_억}억</div><div class="l">거래 범위</div></div>
     </div>`;
 }
 
-// ── 필터 초기화 ──
-function initFilters() {
-  const guSel = document.getElementById('filter-gu');
-  [...new Set(allData.transactions.map(t => t.구))].sort().forEach(g => {
-    const o = document.createElement('option'); o.value = g; o.textContent = g; guSel.appendChild(o);
+// ── 필터 ──
+function initFilters(){
+  const sel=document.getElementById('f-gu');
+  [...new Set(allData.transactions.map(t=>t.구))].sort().forEach(g=>{
+    const o=document.createElement('option'); o.value=g; o.textContent=g; sel.appendChild(o);
   });
-  ['slider-max','slider-min','slider-area'].forEach(id => {
-    document.getElementById(id).addEventListener('input', function() {
-      const labels = {'slider-max':'val-max','slider-min':'val-min','slider-area':'val-area'};
-      const units  = {'slider-max':'억','slider-min':'억','slider-area':'㎡~'};
-      document.getElementById(labels[id]).textContent = this.value + units[id];
-      applyFilters();
-    });
-  });
-  ['filter-gu','filter-year'].forEach(id => document.getElementById(id).addEventListener('change', applyFilters));
-  document.getElementById('toggle-hangang').addEventListener('change', applyFilters);
-  document.getElementById('filter-search').addEventListener('input', applyFilters);
+  document.getElementById('s-max-p').addEventListener('input',function(){ document.getElementById('v-max').textContent=this.value+'억'; applyFilters(); });
+  document.getElementById('s-min-p').addEventListener('input',function(){ document.getElementById('v-min').textContent=this.value+'억'; applyFilters(); });
+  document.getElementById('s-area').addEventListener('input',function(){ document.getElementById('v-area').textContent=this.value+'㎡~'; applyFilters(); });
+  ['f-gu','f-year'].forEach(id=>document.getElementById(id).addEventListener('change',applyFilters));
+  document.getElementById('t-hangang').addEventListener('change',applyFilters);
+  document.getElementById('f-search').addEventListener('input',applyFilters);
+  document.getElementById('f-search2').addEventListener('input',applyFilters);
 }
 
-// ── 필터 적용 ──
-function applyFilters() {
-  const gu       = document.getElementById('filter-gu').value;
-  const maxPrice = parseInt(document.getElementById('slider-max').value) * 10000;
-  const minPrice = parseInt(document.getElementById('slider-min').value) * 10000;
-  const minArea  = parseFloat(document.getElementById('slider-area').value);
-  const yearFrom = parseInt(document.getElementById('filter-year').value) || 0;
-  const hangangOnly = document.getElementById('toggle-hangang').checked;
-  const search   = document.getElementById('filter-search').value.trim().toLowerCase();
+function applyFilters(){
+  const gu       = selGu || document.getElementById('f-gu').value;
+  const maxP     = parseInt(document.getElementById('s-max-p').value)*10000;
+  const minP     = parseInt(document.getElementById('s-min-p').value)*10000;
+  const minA     = parseFloat(document.getElementById('s-area').value);
+  const yr       = parseInt(document.getElementById('f-year').value)||0;
+  const hOnly    = document.getElementById('t-hangang').checked;
+  const srch     = (document.getElementById('f-search').value||document.getElementById('f-search2').value).trim().toLowerCase();
 
-  filtered = allData.transactions.filter(t => {
-    if (gu && t.구 !== gu) return false;
-    if (selectedGu && t.구 !== selectedGu) return false;
-    if (t.거래금액 > maxPrice || t.거래금액 < minPrice) return false;
-    if (t.전용면적 < minArea) return false;
-    if (yearFrom && parseInt(t.건축연도) < yearFrom) return false;
-    if (hangangOnly && !t.한강인근) return false;
-    if (search && !t.단지명.toLowerCase().includes(search) && !t.구.includes(search)) return false;
+  filtered = allData.transactions.filter(t=>{
+    if(gu && t.구!==gu) return false;
+    if(t.거래금액>maxP||t.거래금액<minP) return false;
+    if(t.전용면적<minA) return false;
+    if(yr && parseInt(t.건축연도)<yr) return false;
+    if(hOnly && !t.한강인근) return false;
+    if(srch && !t.단지명.toLowerCase().includes(srch) && !t.구.includes(srch)) return false;
     return true;
   });
 
-  filtered.sort((a,b) => {
-    let va = a[sortKey], vb = b[sortKey];
-    if (typeof va === 'string') { va = va.toLowerCase(); vb = vb.toLowerCase(); }
-    return sortAsc ? (va < vb ? -1 : va > vb ? 1 : 0) : (va > vb ? -1 : va < vb ? 1 : 0);
-  });
-
-  currentPage = 1;
+  doSort();
+  page=1;
   renderSummary(); renderTable(); renderCharts();
-  updateMapHighlight();
+  updateMapColors();
 }
 
-function updateMapHighlight() {
-  const filteredGus = new Set(filtered.map(t => t.구));
-  document.querySelectorAll('.gu').forEach(el => {
-    const name = el.dataset.gu;
-    if (!selectedGu) {
-      el.style.opacity = filteredGus.has(name) ? '1' : '0.4';
-    } else {
-      el.style.opacity = '1';
-    }
+function updateMapColors(){
+  const counts={};
+  filtered.forEach(t=>{ counts[t.구]=(counts[t.구]||0)+1; });
+  const maxC=Math.max(...Object.values(counts),1);
+  Object.entries(guLayers).forEach(([name,{layer,isH}])=>{
+    if(selGu===name) return;
+    const ratio=(counts[name]||0)/maxC;
+    const fc = isH
+      ? `rgb(${Math.round(179-ratio*120)},${Math.round(229-ratio*80)},252)`
+      : `rgb(${Math.round(200-ratio*80)},${Math.round(230-ratio*70)},${Math.round(200-ratio*80)})`;
+    layer.setStyle({fillColor:fc,fillOpacity: counts[name]?0.75:0.25, color:isH?'#0288d1':'#388e3c',weight:1.5});
   });
 }
 
-// ── 요약 카드 ──
-function renderSummary() {
-  const prices = filtered.map(t => t.거래금액);
-  const avg = prices.length ? Math.round(prices.reduce((s,v)=>s+v,0)/prices.length/10000*10)/10 : 0;
-  document.getElementById('sum-total').textContent = filtered.length.toLocaleString() + '건';
-  document.getElementById('sum-avg').textContent   = avg + '억';
-  document.getElementById('sum-min').textContent   = prices.length ? (Math.min(...prices)/10000).toFixed(1)+'억' : '-';
-  document.getElementById('sum-max').textContent   = prices.length ? (Math.max(...prices)/10000).toFixed(1)+'억' : '-';
-  document.getElementById('sum-gu').textContent    = new Set(filtered.map(t=>t.구)).size + '개구';
+function doSort(){
+  filtered.sort((a,b)=>{
+    let va=a[sortK],vb=b[sortK];
+    if(typeof va==='string'){va=va.toLowerCase();vb=vb.toLowerCase();}
+    return sortAsc?(va<vb?-1:va>vb?1:0):(va>vb?-1:va<vb?1:0);
+  });
+}
+
+// ── 요약 ──
+function renderSummary(){
+  const ps=filtered.map(t=>t.거래금액);
+  const avg=ps.length?Math.round(ps.reduce((s,v)=>s+v,0)/ps.length/10000*10)/10:0;
+  document.getElementById('s-total').textContent=filtered.length.toLocaleString()+'건';
+  document.getElementById('s-avg').textContent=avg+'억';
+  document.getElementById('s-min').textContent=ps.length?(Math.min(...ps)/10000).toFixed(1)+'억':'-';
+  document.getElementById('s-max').textContent=ps.length?(Math.max(...ps)/10000).toFixed(1)+'억':'-';
+  document.getElementById('s-gu').textContent=new Set(filtered.map(t=>t.구)).size+'개구';
 }
 
 // ── 테이블 ──
-function renderTable() {
-  const tbody = document.getElementById('tbody');
-  tbody.innerHTML = '';
-  const page = filtered.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE);
-  page.forEach(t => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><strong>${t.단지명}</strong>${t.한강인근?' <span class="htag">한강</span>':''}</td>
-      <td>${t.구}</td><td>${t.전용면적}㎡</td><td>${t.층}층</td>
-      <td>${t.건축연도}년</td><td class="price-cell">${t.거래금액_억}억</td><td>${t.거래일}</td>`;
-    tr.addEventListener('click', () => openModal(t));
-    tbody.appendChild(tr);
+function renderTable(){
+  const tb=document.getElementById('tbody'); tb.innerHTML='';
+  filtered.slice((page-1)*PS, page*PS).forEach(t=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><strong>${t.단지명}</strong>${t.한강인근?' <span class="htag">한강</span>':''}</td><td>${t.구}</td><td>${t.전용면적}㎡</td><td>${t.층}층</td><td>${t.건축연도}년</td><td class="pc">${t.거래금액_억}억</td><td>${t.거래일}</td>`;
+    tr.addEventListener('click',()=>openModal(t));
+    tb.appendChild(tr);
   });
-  document.getElementById('table-count').textContent = `총 ${filtered.length.toLocaleString()}건`;
-  renderPagination();
+  document.getElementById('tbl-cnt').textContent='총 '+filtered.length.toLocaleString()+'건';
+  renderPg();
 }
 
-function renderPagination() {
-  const total = Math.ceil(filtered.length / PAGE_SIZE);
-  const el = document.getElementById('pagination');
-  el.innerHTML = '';
-  const btn = (label, page, disabled, active) => {
-    const b = document.createElement('button');
-    b.textContent = label; if(disabled) b.disabled=true; if(active) b.classList.add('active');
-    b.addEventListener('click', () => { currentPage=page; renderTable(); }); return b;
+function renderPg(){
+  const total=Math.ceil(filtered.length/PS);
+  const el=document.getElementById('pg'); el.innerHTML='';
+  const b=(label,p,disabled,active)=>{
+    const btn=document.createElement('button');
+    btn.textContent=label; if(disabled)btn.disabled=true; if(active)btn.classList.add('active');
+    btn.addEventListener('click',()=>{page=p;renderTable()}); return btn;
   };
-  el.appendChild(btn('◀', currentPage-1, currentPage<=1));
-  for (let i=Math.max(1,currentPage-2); i<=Math.min(total,currentPage+2); i++)
-    el.appendChild(btn(i, i, false, i===currentPage));
-  el.appendChild(btn('▶', currentPage+1, currentPage>=total));
+  el.appendChild(b('◀',page-1,page<=1));
+  for(let i=Math.max(1,page-2);i<=Math.min(total,page+2);i++) el.appendChild(b(i,i,false,i===page));
+  el.appendChild(b('▶',page+1,page>=total));
 }
 
 // ── 차트 ──
-function renderCharts() {
-  // 구별 평균가
-  const guStats = {};
-  filtered.forEach(t => { if(!guStats[t.구]) guStats[t.구]={sum:0,cnt:0}; guStats[t.구].sum+=t.거래금액; guStats[t.구].cnt++; });
-  const sorted = Object.entries(guStats).map(([g,v])=>({g, avg:Math.round(v.sum/v.cnt/10000*10)/10})).sort((a,b)=>b.avg-a.avg).slice(0,12);
+function renderCharts(){
+  const gs={};
+  filtered.forEach(t=>{if(!gs[t.구])gs[t.구]={s:0,c:0};gs[t.구].s+=t.거래금액;gs[t.구].c++;});
+  const sorted=Object.entries(gs).map(([g,v])=>({g,avg:Math.round(v.s/v.c/10000*10)/10})).sort((a,b)=>b.avg-a.avg).slice(0,12);
+  const ctx1=document.getElementById('c-bar').getContext('2d');
+  if(charts.bar)charts.bar.destroy();
+  charts.bar=new Chart(ctx1,{type:'bar',data:{labels:sorted.map(s=>s.g.replace('구','')),datasets:[{data:sorted.map(s=>s.avg),backgroundColor:sorted.map(s=>HG.has(s.g)?'#0288d1bb':'#388e3cbb'),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'억'}},x:{ticks:{font:{size:9}}}}}});
 
-  const ctx1 = document.getElementById('chart-bar').getContext('2d');
-  if(charts.bar) charts.bar.destroy();
-  charts.bar = new Chart(ctx1, { type:'bar', data:{ labels:sorted.map(s=>s.g.replace('구','')), datasets:[{ data:sorted.map(s=>s.avg), backgroundColor:sorted.map(s=>HANGANG_SET.has(s.g)?'#0288d1cc':'#2e7d32cc'), borderRadius:4 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{beginAtZero:true,ticks:{callback:v=>v+'억'}}, x:{ticks:{font:{size:9}}} } } });
+  const ms={};
+  filtered.forEach(t=>{const ym=t.년+'-'+t.월;ms[ym]=(ms[ym]||0)+1;});
+  const mArr=Object.entries(ms).sort((a,b)=>a[0].localeCompare(b[0])).slice(-12);
+  const ctx2=document.getElementById('c-line').getContext('2d');
+  if(charts.line)charts.line.destroy();
+  charts.line=new Chart(ctx2,{type:'line',data:{labels:mArr.map(e=>e[0]),datasets:[{data:mArr.map(e=>e[1]),borderColor:'#1a73e8',backgroundColor:'#1a73e820',fill:true,tension:.4,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9}}}}}});
 
-  // 월별 거래량
-  const mStats = {};
-  filtered.forEach(t => { const ym=t.년+'-'+t.월; mStats[ym]=(mStats[ym]||0)+1; });
-  const ms = Object.entries(mStats).sort((a,b)=>a[0].localeCompare(b[0])).slice(-12);
-  const ctx2 = document.getElementById('chart-line').getContext('2d');
-  if(charts.line) charts.line.destroy();
-  charts.line = new Chart(ctx2, { type:'line', data:{ labels:ms.map(e=>e[0]), datasets:[{ data:ms.map(e=>e[1]), borderColor:'#1a73e8', backgroundColor:'#1a73e820', fill:true, tension:.4, pointRadius:3 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{ticks:{font:{size:9}}}} } });
-
-  // 면적 도넛
-  const buckets={'84~95㎡':0,'95~115㎡':0,'115~135㎡':0,'135㎡~':0};
-  filtered.forEach(t=>{ const a=t.전용면적; if(a<95)buckets['84~95㎡']++; else if(a<115)buckets['95~115㎡']++; else if(a<135)buckets['115~135㎡']++; else buckets['135㎡~']++; });
-  const ctx3 = document.getElementById('chart-area').getContext('2d');
-  if(charts.area) charts.area.destroy();
-  charts.area = new Chart(ctx3, { type:'doughnut', data:{ labels:Object.keys(buckets), datasets:[{ data:Object.values(buckets), backgroundColor:['#1a73e8','#0288d1','#34a853','#fbbc04'], borderWidth:2 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom',labels:{font:{size:10}}}} } });
+  const bk={'84~95㎡':0,'95~115㎡':0,'115~135㎡':0,'135㎡~':0};
+  filtered.forEach(t=>{const a=t.전용면적;if(a<95)bk['84~95㎡']++;else if(a<115)bk['95~115㎡']++;else if(a<135)bk['115~135㎡']++;else bk['135㎡~']++;});
+  const ctx3=document.getElementById('c-donut').getContext('2d');
+  if(charts.donut)charts.donut.destroy();
+  charts.donut=new Chart(ctx3,{type:'doughnut',data:{labels:Object.keys(bk),datasets:[{data:Object.values(bk),backgroundColor:['#1a73e8','#0288d1','#34a853','#fbbc04'],borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10}}}}}});
 }
 
 // ── 모달 ──
-function openModal(t) {
-  document.getElementById('modal-title').textContent = t.단지명;
-  const history = filtered.filter(x=>x.단지명===t.단지명).sort((a,b)=>b.거래일.localeCompare(a.거래일)).slice(0,10);
-  let html = `<table>
-    <tr><th>구/동</th><td>${t.구} ${t.법정동}</td></tr>
-    <tr><th>전용면적</th><td>${t.전용면적}㎡</td></tr>
-    <tr><th>층수</th><td>${t.층}층</td></tr>
-    <tr><th>건축연도</th><td>${t.건축연도}년</td></tr>
-    <tr><th>거래금액</th><td class="price-cell"><strong>${t.거래금액_억}억원</strong></td></tr>
-    <tr><th>거래일</th><td>${t.거래일}</td></tr>
-  </table>
-  <h4 style="margin:14px 0 8px;font-size:12px;color:#5f6368">최근 거래 이력</h4>
-  <table><thead><tr><th>거래일</th><th>면적</th><th>층</th><th>금액</th></tr></thead><tbody>`;
-  history.forEach(h => { html += `<tr><td>${h.거래일}</td><td>${h.전용면적}㎡</td><td>${h.층}층</td><td class="price-cell">${h.거래금액_억}억</td></tr>`; });
-  html += `</tbody></table><a href="https://new.land.naver.com/search?query=${encodeURIComponent(t.단지명)}" target="_blank" class="naver-link">네이버 부동산에서 보기 →</a>`;
-  document.getElementById('modal-body').innerHTML = html;
-  document.getElementById('modal-overlay').classList.add('open');
+function openModal(t){
+  document.getElementById('mo-title').textContent=t.단지명;
+  const hist=filtered.filter(x=>x.단지명===t.단지명).sort((a,b)=>b.거래일.localeCompare(a.거래일)).slice(0,10);
+  let html=`<table><tr><th>구/동</th><td>${t.구} ${t.법정동}</td></tr><tr><th>전용면적</th><td>${t.전용면적}㎡</td></tr><tr><th>층수</th><td>${t.층}층</td></tr><tr><th>건축연도</th><td>${t.건축연도}년</td></tr><tr><th>거래금액</th><td class="pc"><strong>${t.거래금액_억}억원</strong></td></tr><tr><th>거래일</th><td>${t.거래일}</td></tr></table>`;
+  html+=`<h4 style="margin:12px 0 8px;font-size:12px;color:#5f6368">최근 거래 이력</h4><table><thead><tr><th>거래일</th><th>면적</th><th>층</th><th>금액</th></tr></thead><tbody>`;
+  hist.forEach(h=>{html+=`<tr><td>${h.거래일}</td><td>${h.전용면적}㎡</td><td>${h.층}층</td><td class="pc">${h.거래금액_억}억</td></tr>`;});
+  html+=`</tbody></table><a href="https://new.land.naver.com/search?query=${encodeURIComponent(t.단지명)}" target="_blank" class="naver-btn">네이버 부동산 →</a>`;
+  document.getElementById('mo-body').innerHTML=html;
+  document.getElementById('detail-mo').classList.add('open');
 }
 
-// ── 테이블 정렬 ──
-document.querySelectorAll('th[data-key]').forEach(th => {
-  th.addEventListener('click', () => {
-    const key = th.dataset.key;
-    if(sortKey===key) sortAsc=!sortAsc; else { sortKey=key; sortAsc=false; }
-    document.querySelectorAll('th[data-key]').forEach(t => { t.classList.remove('sorted'); t.textContent = t.textContent.replace(/[↑↓↕]/g,'') + ' ↕'; });
-    th.classList.add('sorted'); th.textContent = th.textContent.replace(/[↑↓↕]/g,'') + (sortAsc?' ↑':' ↓');
-    filtered.sort((a,b)=>{ let va=a[sortKey],vb=b[sortKey]; if(typeof va==='string'){va=va.toLowerCase();vb=vb.toLowerCase();} return sortAsc?(va<vb?-1:va>vb?1:0):(va>vb?-1:va<vb?1:0); });
-    currentPage=1; renderTable();
+// ── 정렬 ──
+document.querySelectorAll('th[data-k]').forEach(th=>{
+  th.addEventListener('click',()=>{
+    const k=th.dataset.k;
+    if(sortK===k)sortAsc=!sortAsc;else{sortK=k;sortAsc=false;}
+    document.querySelectorAll('th[data-k]').forEach(t=>{t.classList.remove('sorted');t.textContent=t.textContent.replace(/[↑↓↕]/g,'')+' ↕';});
+    th.classList.add('sorted');th.textContent=th.textContent.replace(/[↑↓↕]/g,'')+(sortAsc?' ↑':' ↓');
+    doSort();page=1;renderTable();
   });
 });
 
 // ── 초기화 버튼 ──
-document.getElementById('btn-reset').addEventListener('click', () => {
-  ['filter-gu','filter-year'].forEach(id => document.getElementById(id).value='');
-  document.getElementById('slider-max').value=25; document.getElementById('val-max').textContent='25억';
-  document.getElementById('slider-min').value=10; document.getElementById('val-min').textContent='10억';
-  document.getElementById('slider-area').value=84; document.getElementById('val-area').textContent='84㎡~';
-  document.getElementById('toggle-hangang').checked=false;
-  document.getElementById('filter-search').value='';
-  selectedGu=null;
-  document.querySelectorAll('.gu').forEach(e=>{ e.classList.remove('selected'); e.style.opacity='1'; });
-  document.getElementById('gu-info').innerHTML='<p class="gu-placeholder">구를 클릭하면 상세 정보가 표시됩니다</p>';
+document.getElementById('btn-reset').addEventListener('click',()=>{
+  ['f-gu','f-year'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('s-max-p').value=25; document.getElementById('v-max').textContent='25억';
+  document.getElementById('s-min-p').value=10; document.getElementById('v-min').textContent='10억';
+  document.getElementById('s-area').value=84; document.getElementById('v-area').textContent='84㎡~';
+  document.getElementById('t-hangang').checked=false;
+  document.getElementById('f-search').value='';
+  document.getElementById('f-search2').value='';
+  selGu=null;
+  document.getElementById('gu-info').innerHTML='<p class="gu-placeholder">지도에서 구를 클릭하면 상세 정보가 표시됩니다</p>';
   applyFilters();
 });
 

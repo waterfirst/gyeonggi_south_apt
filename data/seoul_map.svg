@@ -1,0 +1,114 @@
+<svg viewBox="0 0 560 520" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+  <defs>
+    <style>
+      .gu { cursor:pointer; transition: opacity 0.2s; }
+      .gu:hover { opacity: 0.75; }
+      .gu-label { font-family: 'Noto Sans KR', sans-serif; font-size: 9px; font-weight:700; fill:#333; pointer-events:none; text-anchor:middle; }
+    </style>
+  </defs>
+  <!-- 배경 -->
+  <rect width="560" height="520" fill="#f0f4f8"/>
+
+  <polygon class="gu" id="gu-도봉구" data-gu="도봉구"
+    points="303.8,17.9 405.1,17.9 431.3,64.6 399.1,107.6 345.5,107.6 309.8,71.7"
+    fill="#c8e6c9" stroke="#2e7d32" stroke-width="1.5" stroke-linejoin="round"/>
+  <text class="gu-label" x="365.8" y="64.6" dy="3">도봉</text>
+  <polygon class="gu" id="gu-노원구" data-gu="노원구"
+    points="405.1,17.9 548.1,17.9 548.1,134.5 464.7,143.4 423.0,107.6 399.1,107.6 431.3,64.6"
+    fill="#c8e6c9" stroke="#2e7d32" stroke-width="1.5" stroke-linejoin="round"/>
+  <text class="gu-label" x="459.9" y="84.8" dy="3">노원</text>
+  <polygon class="gu" id="gu-강북구" data-gu="강북구"
+    points="250.2,17.9 303.8,17.9 309.8,71.7 345.5,107.6 315.7,161.4 274.0,179.3 238.3,143.4 238.3,71.7"
+    fill="#c8e6c9" stroke="#2e7d32" stroke-width="1.5" stroke-linejoin="round"/>
+  <text class="gu-label" x="284.5" y="96.4" dy="3">강북</text>
+  <polygon class="gu" id="gu-은평구" data-gu="은평구"
+    points="119.1,17.9 250.2,17.9 238.3,71.7 238.3,143.4 214.5,215.2 184.7,251.0 172.8,286.9 137.0,277.9 119.1,197.2"
+    fill="#c8e6c9" stroke="#2e7d32" stroke-width="1.5" stroke-linejoin="round"/>
+  <text class="gu-label" x="186.0" y="164.4" dy="3">은평</text>
+  <polygon class="gu" id="gu-성북구" data-gu="성북구"
+    points="274.0,179.3 315.7,161.4 345.5,107.6 399.1,107.6 423.0,143.4 411.1,197.2 375.3,233.1 321.7,233.1 286.0,215.2"
+    fill="#c8e6c9" stroke="#2e7d32" stroke-width="1.5" stroke-linejoin="round"/>
+  <text class="gu-label" x="350.2" y="175.3" dy="3">성북</text>
+  <polygon class="gu" id="gu-서대문구" data-gu="서대문구"
+    points="214.5,215.2 238.3,143.4 274.0,179.3 286.0,215.2 321.7,233.1 297.9,251.0 262.1,277.9 232.3,295.9 214.5,260.0"
+    fill="#c8e6c9" stroke="#2e7d32" stroke-width="1.5" stroke-linejoin="round"/>
+  <text class="gu-label" x="260.1" y="230.1" dy="3">서대문</text>
+  <polygon class="gu" id="gu-동대문구" data-gu="동대문구"
+    points="321.7,233.1 375.3,233.1 411.1,197.2 434.9,233.1 434.9,260.0 405.1,277.9 381.3,286.9 357.4,277.9 333.6,277.9"
+    fill="#c8e6c9" stroke="#2e7d32" stroke-width="1.5" stroke-linejoin="round"/>
+  <text class="gu-label" x="383.9" y="253.0" dy="3">동대문</text>
+  <polygon class="gu" id="gu-중랑구" data-gu="중랑구"
+    points="423.0,143.4 464.7,143.4 548.1,134.5 518.3,197.2 464.7,233.1 434.9,233.1 411.1,197.2"
+    fill="#c8e6c9" stroke="#2e7d32" stroke-width="1.5" stroke-linejoin="round"/>
+  <text class="gu-label" x="466.4" y="183.2" dy="3">중랑</text>
+  <polygon class="gu" id="gu-종로구" data-gu="종로구"
+    points="297.9,251.0 321.7,233.1 333.6,277.9 357.4,277.9 381.3,286.9 375.3,260.0 345.5,260.0 321.7,269.0 303.8,269.0"
+    fill="#c8e6c9" stroke="#2e7d32" stroke-width="1.5" stroke-linejoin="round"/>
+  <text class="gu-label" x="337.6" y="265.0" dy="3">종로</text>
+  <polygon class="gu" id="gu-중구" data-gu="중구"
+    points="303.8,269.0 321.7,269.0 345.5,260.0 357.4,277.9 351.5,295.9 327.7,304.8 309.8,295.9"
+    fill="#c8e6c9" stroke="#2e7d32" stroke-width="1.5" stroke-linejoin="round"/>
+  <text class="gu-label" x="331.1" y="281.8" dy="3">중</text>
+  <polygon class="gu" id="gu-성동구" data-gu="성동구"
+    points="333.6,277.9 357.4,277.9 381.3,286.9 405.1,277.9 434.9,260.0 434.9,233.1 464.7,233.1 464.7,269.0 428.9,304.8 387.2,322.8 345.5,322.8 333.6,295.9"
+    fill="#b3e5fc" stroke="#0288d1" stroke-width="1.5" stroke-linejoin="round"/>
+  <text class="gu-label" x="397.7" y="280.2" dy="3">성동</text>
+  <polygon class="gu" id="gu-광진구" data-gu="광진구"
+    points="434.9,260.0 434.9,233.1 464.7,233.1 518.3,197.2 548.1,233.1 548.1,295.9 506.4,313.8 440.9,313.8 428.9,304.8 464.7,269.0"
+    fill="#b3e5fc" stroke="#0288d1" stroke-width="1.5" stroke-linejoin="round"/>
+  <text class="gu-label" x="479.0" y="265.4" dy="3">광진</text>
+  <polygon class="gu" id="gu-마포구" data-gu="마포구"
+    points="172.8,251.0 214.5,215.2 214.5,260.0 232.3,295.9 244.3,313.8 226.4,331.7 208.5,340.7 184.7,349.7 160.9,340.7 160.9,295.9"
+    fill="#b3e5fc" stroke="#0288d1" stroke-width="1.5" stroke-linejoin="round"/>
+  <text class="gu-label" x="202.0" y="299.4" dy="3">마포</text>
+  <polygon class="gu" id="gu-용산구" data-gu="용산구"
+    points="303.8,269.0 321.7,269.0 327.7,304.8 309.8,295.9 303.8,295.9 291.9,304.8 268.1,313.8 244.3,313.8 244.3,295.9 262.1,286.9 280.0,277.9"
+    fill="#b3e5fc" stroke="#0288d1" stroke-width="1.5" stroke-linejoin="round"/>
+  <text class="gu-label" x="287.0" y="293.4" dy="3">용산</text>
+  <polygon class="gu" id="gu-강서구" data-gu="강서구"
+    points="0.0,161.4 119.1,161.4 137.0,277.9 172.8,286.9 172.8,340.7 160.9,376.6 107.2,394.5 47.7,412.4 0.0,376.6"
+    fill="#c8e6c9" stroke="#2e7d32" stroke-width="1.5" stroke-linejoin="round"/>
+  <text class="gu-label" x="101.9" y="309.8" dy="3">강서</text>
+  <polygon class="gu" id="gu-양천구" data-gu="양천구"
+    points="137.0,277.9 172.8,286.9 172.8,340.7 160.9,376.6 184.7,385.5 208.5,367.6 214.5,340.7 208.5,304.8"
+    fill="#c8e6c9" stroke="#2e7d32" stroke-width="1.5" stroke-linejoin="round"/>
+  <text class="gu-label" x="182.4" y="335.1" dy="3">양천</text>
+  <polygon class="gu" id="gu-영등포구" data-gu="영등포구"
+    points="208.5,340.7 214.5,340.7 244.3,313.8 244.3,331.7 262.1,322.8 262.1,340.7 250.2,358.6 232.3,367.6 214.5,367.6 208.5,358.6"
+    fill="#b3e5fc" stroke="#0288d1" stroke-width="1.5" stroke-linejoin="round"/>
+  <text class="gu-label" x="234.1" y="344.3" dy="3">영등포</text>
+  <polygon class="gu" id="gu-구로구" data-gu="구로구"
+    points="131.1,376.6 160.9,376.6 184.7,385.5 208.5,367.6 208.5,358.6 196.6,367.6 190.6,394.5 172.8,412.4 148.9,421.4 131.1,412.4"
+    fill="#c8e6c9" stroke="#2e7d32" stroke-width="1.5" stroke-linejoin="round"/>
+  <text class="gu-label" x="173.4" y="387.3" dy="3">로</text>
+  <polygon class="gu" id="gu-금천구" data-gu="금천구"
+    points="131.1,412.4 148.9,421.4 172.8,412.4 190.6,394.5 196.6,394.5 202.6,430.3 196.6,457.2 178.7,475.2 148.9,475.2 131.1,448.3"
+    fill="#c8e6c9" stroke="#2e7d32" stroke-width="1.5" stroke-linejoin="round"/>
+  <text class="gu-label" x="169.8" y="432.1" dy="3">금천</text>
+  <polygon class="gu" id="gu-동작구" data-gu="동작구"
+    points="244.3,313.8 268.1,313.8 291.9,304.8 303.8,304.8 303.8,331.7 291.9,349.7 274.0,358.6 256.2,367.6 250.2,358.6 244.3,331.7"
+    fill="#b3e5fc" stroke="#0288d1" stroke-width="1.5" stroke-linejoin="round"/>
+  <text class="gu-label" x="272.9" y="333.5" dy="3">동작</text>
+  <polygon class="gu" id="gu-관악구" data-gu="관악구"
+    points="196.6,394.5 208.5,358.6 250.2,358.6 256.2,367.6 274.0,358.6 291.9,349.7 303.8,331.7 303.8,367.6 291.9,412.4 268.1,439.3 238.3,457.2 208.5,457.2 196.6,439.3"
+    fill="#c8e6c9" stroke="#2e7d32" stroke-width="1.5" stroke-linejoin="round"/>
+  <text class="gu-label" x="253.0" y="391.7" dy="3">관악</text>
+  <polygon class="gu" id="gu-서초구" data-gu="서초구"
+    points="303.8,304.8 327.7,304.8 345.5,322.8 387.2,322.8 428.9,304.8 440.9,313.8 440.9,358.6 423.0,394.5 393.2,421.4 357.4,439.3 321.7,439.3 303.8,412.4 303.8,358.6 303.8,331.7"
+    fill="#b3e5fc" stroke="#0288d1" stroke-width="1.5" stroke-linejoin="round"/>
+  <text class="gu-label" x="363.0" y="359.3" dy="3">서초</text>
+  <polygon class="gu" id="gu-강남구" data-gu="강남구"
+    points="345.5,322.8 387.2,322.8 428.9,304.8 464.7,269.0 464.7,304.8 452.8,358.6 434.9,394.5 423.0,394.5 440.9,358.6 440.9,313.8 428.9,304.8"
+    fill="#b3e5fc" stroke="#0288d1" stroke-width="1.5" stroke-linejoin="round"/>
+  <text class="gu-label" x="428.4" y="331.7" dy="3">강남</text>
+  <polygon class="gu" id="gu-송파구" data-gu="송파구"
+    points="428.9,304.8 464.7,269.0 506.4,313.8 548.1,295.9 548.1,367.6 518.3,394.5 488.5,412.4 452.8,412.4 434.9,394.5"
+    fill="#b3e5fc" stroke="#0288d1" stroke-width="1.5" stroke-linejoin="round"/>
+  <text class="gu-label" x="487.8" y="351.6" dy="3">송파</text>
+  <polygon class="gu" id="gu-강동구" data-gu="강동구"
+    points="464.7,233.1 506.4,313.8 548.1,295.9 548.1,233.1 548.1,197.2"
+    fill="#b3e5fc" stroke="#0288d1" stroke-width="1.5" stroke-linejoin="round"/>
+  <text class="gu-label" x="523.1" y="254.6" dy="3">강동</text>
+  <polygon points="0.0,331.7 107.2,358.6 154.9,358.6 202.6,349.7 250.2,340.7 274.0,322.8 321.7,304.8 381.3,313.8 440.9,304.8 500.4,313.8 548.1,295.9 548.1,322.8 500.4,331.7 440.9,331.7 381.3,331.7 321.7,322.8 274.0,340.7 202.6,367.6 154.9,376.6 107.2,376.6 0.0,349.7" fill="#90caf9" stroke="#64b5f6" stroke-width="1" opacity="0.7"/>
+  <text font-family="Noto Sans KR, sans-serif" font-size="9" fill="#1565c0" opacity="0.8" x="200" y="323">한강</text>
+</svg>

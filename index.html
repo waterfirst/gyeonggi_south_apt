@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>서울 아파트 실거래가 대시보드</title>
+  <title>서울 아파트 실거래가 분석</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -114,7 +114,7 @@
 
 <header>
   <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-    <h1>🏙️ 서울 아파트 실거래가 <span>25억 이하 · 84㎡ 이상</span></h1>
+    <h1>🏙️ 서울 아파트 실거래가 분석 <span>(by 국토부, N-pay부동산, etc.) · 25억 이하 · 84㎡ 이상</span></h1>
     <button class="info-btn" onclick="document.getElementById('info-mo').classList.add('open')">ℹ️ 분석 기준 &amp; 방법론</button>
   </div>
   <div class="hdr-right">
@@ -285,15 +285,15 @@ function initMap(){
 
     const layer = L.geoJSON(feat, {
       style:{
-        fillColor, fillOpacity:0.7,
+        fillColor, fillOpacity:0.35,
         color: isH?'#0288d1':'#388e3c',
         weight:1.5
       }
     }).addTo(leafletMap);
 
     layer.on('click', ()=> onGuClick(name, layer, isH));
-    layer.on('mouseover', ()=>{ if(selGu!==name) layer.setStyle({fillOpacity:0.9,weight:2}); });
-    layer.on('mouseout',  ()=>{ if(selGu!==name) layer.setStyle({fillOpacity:0.7,weight:1.5}); });
+    layer.on('mouseover', ()=>{ if(selGu!==name) layer.setStyle({fillOpacity:0.55,weight:2}); });
+    layer.on('mouseout',  ()=>{ if(selGu!==name) layer.setStyle({fillOpacity:0.35,weight:1.5}); });
 
     // 구 이름 라벨
     const center = layer.getBounds().getCenter();
@@ -334,7 +334,7 @@ function resetMapStyles(){
     const fc = isH
       ? `rgb(${Math.round(179-ratio*120)},${Math.round(229-ratio*80)},252)`
       : `rgb(${Math.round(200-ratio*80)},${Math.round(230-ratio*70)},${Math.round(200-ratio*80)})`;
-    layer.setStyle({fillColor:fc,fillOpacity:0.7,color:isH?'#0288d1':'#388e3c',weight:1.5});
+    layer.setStyle({fillColor:fc,fillOpacity:0.35,color:isH?'#0288d1':'#388e3c',weight:1.5});
   });
 }
 
@@ -400,7 +400,7 @@ function updateMapColors(){
     const fc = isH
       ? `rgb(${Math.round(179-ratio*120)},${Math.round(229-ratio*80)},252)`
       : `rgb(${Math.round(200-ratio*80)},${Math.round(230-ratio*70)},${Math.round(200-ratio*80)})`;
-    layer.setStyle({fillColor:fc,fillOpacity: counts[name]?0.75:0.25, color:isH?'#0288d1':'#388e3c',weight:1.5});
+    layer.setStyle({fillColor:fc,fillOpacity: counts[name]?0.375:0.125, color:isH?'#0288d1':'#388e3c',weight:1.5});
   });
 }
 
@@ -453,10 +453,16 @@ function renderPg(){
 function renderCharts(){
   const gs={};
   filtered.forEach(t=>{if(!gs[t.구])gs[t.구]={s:0,c:0};gs[t.구].s+=t.거래금액;gs[t.구].c++;});
-  const sorted=Object.entries(gs).map(([g,v])=>({g,avg:Math.round(v.s/v.c/10000*10)/10})).sort((a,b)=>b.avg-a.avg).slice(0,12);
+  const maxGsC=Math.max(...Object.values(gs).map(v=>v.c),1);
+  const sorted=Object.entries(gs).map(([g,v])=>({g,avg:Math.round(v.s/v.c/10000*10)/10,ratio:v.c/maxGsC})).sort((a,b)=>b.avg-a.avg).slice(0,12);
+  const barColors=sorted.map(s=>{
+    const r=s.ratio;
+    if(HG.has(s.g)){return `rgba(${Math.round(179-r*120)},${Math.round(229-r*80)},252,0.85)`;}
+    else{const v=Math.round(200-r*80);return `rgba(${v},${Math.round(230-r*70)},${v},0.85)`;}
+  });
   const ctx1=document.getElementById('c-bar').getContext('2d');
   if(charts.bar)charts.bar.destroy();
-  charts.bar=new Chart(ctx1,{type:'bar',data:{labels:sorted.map(s=>s.g.replace('구','')),datasets:[{data:sorted.map(s=>s.avg),backgroundColor:sorted.map(s=>HG.has(s.g)?'#0288d1bb':'#388e3cbb'),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'억'}},x:{ticks:{font:{size:9}}}}}});
+  charts.bar=new Chart(ctx1,{type:'bar',data:{labels:sorted.map(s=>s.g.replace('구','')),datasets:[{data:sorted.map(s=>s.avg),backgroundColor:barColors,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'억'}},x:{ticks:{font:{size:9}}}}}});
 
   const ms={};
   filtered.forEach(t=>{const ym=t.년+'-'+t.월;ms[ym]=(ms[ym]||0)+1;});

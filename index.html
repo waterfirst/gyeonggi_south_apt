@@ -115,7 +115,6 @@
 <header>
   <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
     <h1>🏙️ 서울 아파트 실거래가 분석 <span>(by 국토부, N-pay부동산, 직방+호갱노노 보완) · 25억 이하 · 84㎡ 이상만</span></h1>
-    <button class="info-btn" onclick="document.getElementById('info-mo').classList.add('open')">ℹ️ 분석 기준 &amp; 방법론</button>
   </div>
   <div class="hdr-right">
     <span id="sample-badge" class="badge" style="display:none">샘플 데이터</span>
@@ -137,6 +136,15 @@
     </div>
     <div class="gu-info" id="gu-info">
       <p class="gu-placeholder">지도에서 구를 클릭하면 상세 정보가 표시됩니다</p>
+    </div>
+
+    <!-- 분석 기준 인라인 텍스트 -->
+    <div style="padding:10px 14px;font-size:10px;color:#9e9e9e;line-height:1.7;background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);">
+      <strong style="color:#bdbdbd;font-size:10px;">📌 데이터 출처</strong> 국토교통부 아파트 매매 실거래가 API (공공데이터포털) — 실제 신고 계약만 포함, 추정·호가 제외<br>
+      <strong style="color:#bdbdbd;font-size:10px;">🔍 필터</strong> 서울 25개 구 / 거래금액 25억 이하 / 전용면적 84㎡ 이상 / 최근 12개월<br>
+      <strong style="color:#bdbdbd;font-size:10px;">🏞️ 한강 인근</strong> 마포·용산·영등포·성동·광진·동작·강동·강남·서초·송파구<br>
+      <strong style="color:#bdbdbd;font-size:10px;">🔄 업데이트</strong> GitHub Actions 매일 오전 9시(KST) 자동 갱신 — 국토부 신고 의무기한(30일)으로 1~4주 지연 가능<br>
+      <span style="color:#c0c0c0;">⚠️ 개인 투자 참고용이며 실제 매수 결정 전 전문가 확인을 권장합니다.</span>
     </div>
   </div>
 
@@ -190,31 +198,6 @@
         </table>
       </div>
       <div class="pg" id="pg"></div>
-    </div>
-  </div>
-</div>
-
-<!-- 분석 기준 모달 -->
-<div class="mo" id="info-mo" onclick="if(event.target===this)this.classList.remove('open')">
-  <div class="mo-box">
-    <div class="mo-hdr"><h3>📊 분석 기준 &amp; 방법론</h3><button class="mo-cls" onclick="document.getElementById('info-mo').classList.remove('open')">✕</button></div>
-    <div class="mo-body">
-      <h4 style="color:#1a73e8;margin-bottom:6px">📌 데이터 출처</h4>
-      <p>국토교통부 <strong>아파트 매매 실거래가 상세 자료</strong> API (공공데이터포털)<br>실제 신고된 계약 건만 포함, 추정·호가 제외</p>
-      <hr style="margin:12px 0;border:none;border-top:1px solid #eee">
-      <h4 style="color:#1a73e8;margin-bottom:6px">🔍 필터 기준</h4>
-      <p>서울 25개 구 전체 / 거래금액 25억 이하 / 전용면적 84㎡ 이상 / 최근 12개월</p>
-      <hr style="margin:12px 0;border:none;border-top:1px solid #eee">
-      <h4 style="color:#1a73e8;margin-bottom:6px">🏞️ 한강 인근 기준</h4>
-      <p>마포·용산·영등포·성동·광진·동작·강동·강남·서초·송파구</p>
-      <hr style="margin:12px 0;border:none;border-top:1px solid #eee">
-      <h4 style="color:#1a73e8;margin-bottom:6px">🗺️ 지도</h4>
-      <p>OpenStreetMap 기반 Leaflet.js 지도. 구 경계는 근사치이며 정확한 행정 경계와 일부 차이가 있을 수 있습니다.</p>
-      <hr style="margin:12px 0;border:none;border-top:1px solid #eee">
-      <h4 style="color:#1a73e8;margin-bottom:6px">🔄 업데이트 주기</h4>
-      <p>GitHub Actions 매일 오전 9시(KST) 자동 갱신. 국토부 신고 의무 기한(30일)으로 1~4주 지연 가능</p>
-      <hr style="margin:12px 0;border:none;border-top:1px solid #eee">
-      <p style="color:#999;font-size:11px">⚠️ 개인 투자 참고용이며 실제 매수 결정 전 전문가 확인을 권장합니다.</p>
     </div>
   </div>
 </div>

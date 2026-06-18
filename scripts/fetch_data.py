@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
 API_KEY = os.environ.get("MOLIT_API_KEY", "FNRUoAx54GnO18NkzyJFWX1fLrmw4CmB5dsVtAkF6NFV6jbuJUqEhcG9VzCO0WkGHkerkCKrObHQGSBxEXHcpQ==")
-BASE_URL = "https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev"
+BASE_URL = "https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev"
 
 # 서울 25개 구 법정동코드
 SEOUL_DISTRICTS = {
@@ -64,20 +64,20 @@ def get_yearmonths(months=12):
 
 def fetch_transactions(lawd_cd, deal_ymd):
     """국토부 API에서 특정 구/월 데이터 수집"""
-    params = {
-        "serviceKey": API_KEY,
-        "LAWD_CD": lawd_cd,
-        "DEAL_YMD": deal_ymd,
-        "numOfRows": 1000,
-        "pageNo": 1,
+    # serviceKey를 params 딕셔너리에 넣으면 requests가 ==를 %3D%3D로
+    # 이중인코딩해 500 에러 발생 → URL에 직접 붙여서 회피
+    url = f"{BASE_URL}?serviceKey={API_KEY}&LAWD_CD={lawd_cd}&DEAL_YMD={deal_ymd}&numOfRows=1000&pageNo=1"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "application/xml, text/xml, */*",
     }
     try:
-        resp = requests.get(BASE_URL, params=params, timeout=30)
+        resp = requests.get(url, headers=headers, timeout=30)
         resp.raise_for_status()
         root = ET.fromstring(resp.content)
 
-        result_code = root.findtext(".//resultCode", "")
-        if result_code != "00":
+        result_code = root.findtext(".//resultCode", "").strip()
+        if result_code not in ("00", "000"):
             return []
 
         items = []
@@ -88,14 +88,14 @@ def fetch_transactions(lawd_cd, deal_ymd):
 
             # 거래금액 파싱 (쉼표 제거 후 정수)
             try:
-                price_str = get("거래금액").replace(",", "").replace(" ", "")
+                price_str = get("dealAmount").replace(",", "").replace(" ", "")
                 price = int(price_str)
             except (ValueError, AttributeError):
                 continue
 
             # 면적 파싱
             try:
-                area = float(get("전용면적"))
+                area = float(get("excluUseAr"))
             except (ValueError, AttributeError):
                 continue
 
@@ -105,19 +105,23 @@ def fetch_transactions(lawd_cd, deal_ymd):
             if area < MIN_AREA:
                 continue
 
+            year  = get("dealYear")
+            month = get("dealMonth").zfill(2)
+            day   = get("dealDay").zfill(2)
+
             items.append({
-                "단지명": get("아파트"),
+                "단지명": get("aptNm"),
                 "구": "",  # 상위에서 채움
-                "법정동": get("법정동"),
+                "법정동": get("umdNm"),
                 "전용면적": area,
-                "층": get("층"),
-                "건축연도": get("건축연도"),
+                "층": get("floor"),
+                "건축연도": get("buildYear"),
                 "거래금액": price,
                 "거래금액_억": round(price / 10000, 2),
-                "년": get("년"),
-                "월": get("월"),
-                "일": get("일"),
-                "거래일": f"{get('년')}-{get('월').zfill(2)}-{get('일').zfill(2)}",
+                "년": year,
+                "월": month,
+                "일": day,
+                "거래일": f"{year}-{month}-{day}",
                 "지역코드": lawd_cd,
             })
         return items

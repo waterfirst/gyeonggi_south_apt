@@ -469,13 +469,11 @@ function openModal(t){
   html+=`<h4 style="margin:12px 0 8px;font-size:12px;color:#5f6368">최근 거래 이력</h4><table><thead><tr><th>거래일</th><th>면적</th><th>층</th><th>금액</th></tr></thead><tbody>`;
   hist.forEach(h=>{html+=`<tr><td>${h.거래일}</td><td>${h.전용면적}㎡</td><td>${h.층}층</td><td class="pc">${h.거래금액_억}억</td></tr>`;});
   let naverUrl;
-  if(t.네이버ID){
-    naverUrl=`https://map.naver.com/v5/entry/place/${t.네이버ID}`;
-  } else if(t.네이버좌표){
+  if(t.네이버좌표){
     const[lat,lng]=t.네이버좌표.split(',');
     naverUrl=`https://new.land.naver.com/complexes?ms=${lat},${lng},17&a=APT&b=A1&e=SELL&q=${encodeURIComponent(t.단지명)}`;
   } else {
-    naverUrl=`https://map.naver.com/v5/search/${encodeURIComponent(t.단지명+' '+t.구+' '+t.법정동)}`;
+    naverUrl=`https://new.land.naver.com/complexes?q=${encodeURIComponent(t.단지명+' '+t.구)}`;
   }
   html+=`</tbody></table>
   <a href="${naverUrl}" target="_blank" class="naver-btn" style="display:block;text-align:center;margin-top:12px;">📍 N-pay 부동산에서 보기</a>`;

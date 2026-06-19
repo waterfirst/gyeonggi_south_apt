@@ -109,17 +109,14 @@ def fetch_transactions(lawd_cd, deal_ymd):
             month = get("dealMonth").zfill(2)
             day   = get("dealDay").zfill(2)
 
-            # 도로명 주소 조합 (예: "종로구 송월길 99")
-            road_nm   = get("roadNm").strip()
-            road_bon  = get("roadNmBonbun").lstrip("0") or "0"
-            road_bub  = get("roadNmBubun").lstrip("0")
-            road_addr = f"{road_nm} {road_bon}" + (f"-{road_bub}" if road_bub else "")
+            # 지번주소 조합 (예: "홍파동 199") → index.html에서 구와 합쳐 "서울 종로구 홍파동 199"
+            jibun = get("jibun").lstrip("0") or ""
 
             items.append({
                 "단지명": get("aptNm"),
                 "구": "",  # 상위에서 채움
                 "법정동": get("umdNm"),
-                "도로명주소": road_addr,
+                "지번": jibun,
                 "전용면적": area,
                 "층": get("floor"),
                 "건축연도": get("buildYear"),

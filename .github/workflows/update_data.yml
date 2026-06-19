@@ -25,6 +25,8 @@ jobs:
       - name: 데이터 수집 실행
         env:
           MOLIT_API_KEY: ${{ secrets.MOLIT_API_KEY }}
+          NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
+          NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
         run: python scripts/fetch_data.py
 
       - name: 변경사항 커밋 및 푸시

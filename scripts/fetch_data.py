@@ -3,6 +3,7 @@
 - 서울 25개 구 전체
 - 최근 12개월
 - 25억 이하, 전용면적 84㎡ 이상 필터
+- Naver Local Search API로 좌표 조회 → 정확한 위치 링크 생성
 """
 
 import os
@@ -15,6 +16,65 @@ from dateutil.relativedelta import relativedelta
 
 API_KEY = os.environ.get("MOLIT_API_KEY", "FNRUoAx54GnO18NkzyJFWX1fLrmw4CmB5dsVtAkF6NFV6jbuJUqEhcG9VzCO0WkGHkerkCKrObHQGSBxEXHcpQ==")
 BASE_URL = "https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev"
+
+NAVER_CLIENT_ID = os.environ.get("NAVER_CLIENT_ID", "0QrM73nSAb9WQg_rysfa")
+NAVER_CLIENT_SECRET = os.environ.get("NAVER_CLIENT_SECRET", "Rao5GYcu0i")
+
+_naver_cache = {}
+
+
+def get_naver_info(apt_name, gu_name):
+    """Naver Local Search API로 아파트 place ID 또는 좌표 조회"""
+    key = f"{apt_name}_{gu_name}"
+    if key in _naver_cache:
+        return _naver_cache[key]
+
+    result = {"네이버ID": "", "네이버좌표": ""}
+
+    try:
+        resp = requests.get(
+            "https://openapi.naver.com/v1/search/local.json",
+            params={"query": f"{apt_name} {gu_name}", "display": 3},
+            headers={
+                "X-Naver-Client-Id": NAVER_CLIENT_ID,
+                "X-Naver-Client-Secret": NAVER_CLIENT_SECRET,
+            },
+            timeout=10,
+        )
+        if resp.status_code == 200:
+            items = resp.json().get("items", [])
+            for item in items:
+                # place ID 추출 (link URL에 /entry/place/{id} 포함된 경우)
+                link = item.get("link", "")
+                if "/entry/place/" in link:
+                    place_id = link.split("/entry/place/")[1].split("?")[0].strip()
+                    if place_id.isdigit():
+                        result["네이버ID"] = place_id
+                        break
+
+                # 좌표 추출 (mapx/mapy: WGS84 × 10000)
+                mapx = item.get("mapx", "")
+                mapy = item.get("mapy", "")
+                if mapx and mapy and not result["네이버좌표"]:
+                    try:
+                        mapx_val = int(mapx)
+                        mapy_val = int(mapy)
+                        # 스케일 자동 감지 (한국 좌표: 위도 33-40, 경도 124-133)
+                        for factor in [1, 10, 100, 1000, 10000, 100000]:
+                            lat_t = mapy_val / factor
+                            lng_t = mapx_val / factor
+                            if 33 <= lat_t <= 40 and 124 <= lng_t <= 133:
+                                result["네이버좌표"] = f"{round(lat_t, 6)},{round(lng_t, 6)}"
+                                break
+                    except (ValueError, TypeError):
+                        pass
+
+        time.sleep(0.12)  # rate limit 준수
+    except Exception as e:
+        print(f"  Naver API 오류 [{apt_name}]: {e}")
+
+    _naver_cache[key] = result
+    return result
 
 # 서울 25개 구 법정동코드
 SEOUL_DISTRICTS = {
@@ -152,6 +212,25 @@ def main():
             gu_count += len(items)
             time.sleep(0.2)  # API 과부하 방지
         print(f"  → {gu_count}건 수집")
+
+    # ── Naver 좌표/ID 조회 (고유 단지별 1회) ──
+    print("\n[Naver] 아파트 좌표 조회 중...")
+    unique_keys = {}
+    for t in all_transactions:
+        k = (t["단지명"], t["구"])
+        if k not in unique_keys:
+            unique_keys[k] = None
+
+    total = len(unique_keys)
+    for i, (apt_name, gu_name) in enumerate(unique_keys.keys(), 1):
+        unique_keys[(apt_name, gu_name)] = get_naver_info(apt_name, gu_name)
+        if i % 200 == 0 or i == total:
+            print(f"  {i}/{total} 처리...")
+
+    for t in all_transactions:
+        info = unique_keys.get((t["단지명"], t["구"]), {})
+        t["네이버ID"] = info.get("네이버ID", "")
+        t["네이버좌표"] = info.get("네이버좌표", "")
 
     # 거래일 기준 내림차순 정렬
     all_transactions.sort(key=lambda x: x.get("거래일", ""), reverse=True)

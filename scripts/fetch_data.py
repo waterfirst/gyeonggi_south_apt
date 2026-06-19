@@ -24,17 +24,17 @@ _naver_cache = {}
 
 
 def get_naver_info(apt_name, gu_name):
-    """Naver Local Search API로 아파트 place ID 또는 좌표 조회"""
+    """Naver Local Search API로 아파트 place ID / 좌표 / 단지번호 조회"""
     key = f"{apt_name}_{gu_name}"
     if key in _naver_cache:
         return _naver_cache[key]
 
-    result = {"네이버ID": "", "네이버좌표": ""}
+    result = {"네이버ID": "", "네이버좌표": "", "네이버단지번호": ""}
 
     try:
         resp = requests.get(
             "https://openapi.naver.com/v1/search/local.json",
-            params={"query": f"{apt_name} {gu_name}", "display": 3},
+            params={"query": f"{apt_name} {gu_name}", "display": 5},
             headers={
                 "X-Naver-Client-Id": NAVER_CLIENT_ID,
                 "X-Naver-Client-Secret": NAVER_CLIENT_SECRET,
@@ -44,24 +44,27 @@ def get_naver_info(apt_name, gu_name):
         if resp.status_code == 200:
             items = resp.json().get("items", [])
             for item in items:
-                # place ID 추출 (link URL에 /entry/place/{id} 포함된 경우)
                 link = item.get("link", "")
-                if "/entry/place/" in link:
+
+                # ① Naver 부동산 단지 링크에서 단지번호 직접 추출
+                if "land.naver.com/complexes/" in link and not result["네이버단지번호"]:
+                    cn = link.split("/complexes/")[1].split("?")[0].strip()
+                    if cn.isdigit():
+                        result["네이버단지번호"] = cn
+
+                # ② Naver Maps place ID 추출
+                if "/entry/place/" in link and not result["네이버ID"]:
                     place_id = link.split("/entry/place/")[1].split("?")[0].strip()
                     if place_id.isdigit():
                         result["네이버ID"] = place_id
-                        break
 
-                # 좌표 추출 (mapx/mapy: WGS84 × 10000)
+                # ③ 좌표 추출 (mapx/mapy: WGS84 × 10,000,000)
                 mapx = item.get("mapx", "")
                 mapy = item.get("mapy", "")
                 if mapx and mapy and not result["네이버좌표"]:
                     try:
-                        mapx_val = int(mapx)
-                        mapy_val = int(mapy)
-                        # Naver mapx/mapy는 WGS84 좌표 × 10,000,000
-                        lat_t = round(mapy_val / 10000000, 6)
-                        lng_t = round(mapx_val / 10000000, 6)
+                        lat_t = round(int(mapy) / 10000000, 6)
+                        lng_t = round(int(mapx) / 10000000, 6)
                         if 33 <= lat_t <= 40 and 124 <= lng_t <= 133:
                             result["네이버좌표"] = f"{lat_t},{lng_t}"
                     except (ValueError, TypeError):
@@ -71,8 +74,46 @@ def get_naver_info(apt_name, gu_name):
     except Exception as e:
         print(f"  Naver API 오류 [{apt_name}]: {e}")
 
+    # 단지번호가 없으면 Naver Land 내부 검색 API 추가 시도
+    if not result["네이버단지번호"]:
+        result["네이버단지번호"] = _get_land_complex_no(apt_name, gu_name)
+
     _naver_cache[key] = result
     return result
+
+
+def _get_land_complex_no(apt_name, gu_name):
+    """Naver Land 내부 검색 API로 단지번호 조회 (비공개 API, 실패 시 "" 반환)"""
+    try:
+        resp = requests.get(
+            "https://new.land.naver.com/api/search",
+            params={"query": f"{gu_name} {apt_name}"},
+            headers={
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Referer": "https://new.land.naver.com/",
+                "Accept": "application/json, text/plain, */*",
+            },
+            timeout=10,
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            # 여러 가능한 응답 구조 대응
+            complexes = (
+                data.get("complexList")
+                or data.get("result", {}).get("complex", [])
+                or data.get("body", {}).get("complexList", [])
+                or []
+            )
+            for c in complexes:
+                cn = str(c.get("complexNo") or c.get("hscpNo") or "")
+                name = c.get("complexName") or c.get("hscpNm") or ""
+                # 이름 앞 4자 일치 시 해당 단지로 판정
+                if cn.isdigit() and apt_name[:4] in name:
+                    return cn
+        time.sleep(0.05)
+    except Exception:
+        pass
+    return ""
 
 # 서울 25개 구 법정동코드
 SEOUL_DISTRICTS = {
@@ -229,6 +270,7 @@ def main():
         info = unique_keys.get((t["단지명"], t["구"]), {})
         t["네이버ID"] = info.get("네이버ID", "")
         t["네이버좌표"] = info.get("네이버좌표", "")
+        t["네이버단지번호"] = info.get("네이버단지번호", "")
 
     # 거래일 기준 내림차순 정렬
     all_transactions.sort(key=lambda x: x.get("거래일", ""), reverse=True)

@@ -537,7 +537,10 @@ function openModal(t){
   hist.forEach(h=>{html+=`<tr><td>${h.거래일}</td><td>${h.전용면적}㎡</td><td>${h.층}층</td><td class="pc">${h.거래금액_억}억</td></tr>`;});
   const isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   let naverUrl;
-  if(t.네이버좌표){
+  if(t.네이버단지번호){
+    // 단지번호가 있으면 해당 아파트 상세 페이지로 바로 이동 (실거래/매물 바로 표시)
+    naverUrl=`https://new.land.naver.com/complexes/${t.네이버단지번호}?a=APT:ABYG:JGC:PRE&e=SELL`;
+  } else if(t.네이버좌표){
     const[lat,lng]=t.네이버좌표.split(',');
     naverUrl=isMobile
       ?`https://m.land.naver.com/map/app?ms=${lat},${lng},17&a=APT&e=SELL&q=${encodeURIComponent(t.단지명)}`

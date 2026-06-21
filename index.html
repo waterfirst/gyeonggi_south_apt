@@ -364,7 +364,7 @@ function initMap(){
     L.marker(center,{
       icon: L.divIcon({
         className:'',
-        html:`<div style="font-family:'Noto Sans KR',sans-serif;font-size:10px;font-weight:700;color:#333;white-space:nowrap;text-shadow:0 0 3px #fff,0 0 3px #fff">${name.replace('구','')}</div>`,
+        html:`<div style="font-family:'Noto Sans KR',sans-serif;font-size:10px;font-weight:700;color:#333;white-space:nowrap;text-shadow:0 0 3px #fff,0 0 3px #fff">${name.split(' ').pop()}</div>`,
         iconAnchor:[15,8]
       })
     }).addTo(leafletMap);

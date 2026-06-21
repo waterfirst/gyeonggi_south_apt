@@ -553,20 +553,7 @@
     border: 1px solid var(--border);
     height: 400px;
     background: var(--card);
-    display: flex;
-    align-items: center;
-    justify-content: center;
     position: relative;
-  }
-
-  .map-placeholder {
-    text-align: center;
-    color: var(--muted);
-  }
-
-  .map-pin {
-    font-size: 3rem;
-    margin-bottom: 1rem;
   }
 
   .transport-list {
@@ -1152,11 +1139,16 @@
 
   <div class="location-grid">
     <div class="location-map">
-      <div class="map-placeholder">
-        <div class="map-pin">📍</div>
-        <strong>경기도 성남시 분당구<br>실리콘 네스트 아파트</strong>
-        <p style="margin-top:1rem; font-size:0.85rem; color:var(--muted);">지도 API 연동 예정<br>판교테크노밸리 인근</p>
-      </div>
+      <iframe
+        src="https://www.openstreetmap.org/export/embed.html?bbox=127.095%2C37.390%2C127.125%2C37.405&layer=mapnik&marker=37.396%2C127.108"
+        width="100%"
+        height="100%"
+        style="border:0; display:block;"
+        loading="lazy"
+        title="실리콘 네스트 아파트 위치 — 경기도 성남시 분당구 판교"
+        aria-label="지도: 경기도 성남시 분당구 판교테크노밸리 인근"
+        referrerpolicy="no-referrer-when-downgrade"
+      ></iframe>
     </div>
     <div>
       <p class="section-desc">판교테크노밸리와 분당 신도시의 교통 요충지에 위치하여 서울·강남 접근성이 탁월합니다.</p>

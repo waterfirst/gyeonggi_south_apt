@@ -17,7 +17,7 @@ from dateutil.relativedelta import relativedelta
 API_KEY = os.environ.get("MOLIT_API_KEY")  # 헌법 제2조: 하드코딩 금지. GitHub Actions secrets 또는 env로 주입.
 if not API_KEY:
     raise SystemExit("MOLIT_API_KEY 미설정 — GitHub Actions secrets에 본인 국토부 키를 넣으세요.")
-BASE_URL = "https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev"
+BASE_URL = "https://apis.data.go.kr/1613000/RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade"
 
 NAVER_CLIENT_ID = os.environ.get("NAVER_CLIENT_ID", "")
 NAVER_CLIENT_SECRET = os.environ.get("NAVER_CLIENT_SECRET", "")

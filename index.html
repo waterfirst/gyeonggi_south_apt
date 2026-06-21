@@ -135,6 +135,43 @@
     .gd1{animation:gpulse 2.5s ease-in-out infinite;}
     .gd2{animation:gpulse 2.0s ease-in-out infinite .6s;}
     .gd3{animation:gpulse 3.0s ease-in-out infinite 1.2s;}
+  /* 헤더 버튼 */
+  .hdr-btn{background:#fff;color:#1a73e8;border:1px solid #fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:700;white-space:nowrap;cursor:pointer;}
+  .hdr-btn.admin{background:#1a73e8;color:#fff;border-color:#1a73e8;}
+  /* 추천 모달 */
+  #rec-modal{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9000;display:none;overflow-y:auto;padding:20px 0;}
+  #rec-modal.open{display:block;}
+  #rec-print{max-width:780px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.3);}
+  .rec-hd{background:linear-gradient(135deg,#1a73e8,#0b57c7);color:#fff;padding:20px 24px;}
+  .rec-hd h2{font-size:20px;font-weight:800;margin:0 0 4px;font-family:'Nanum Myeongjo',serif;}
+  .rec-hd p{font-size:12px;opacity:.9;margin:0;}
+  .rec-cond{background:#eef3fc;padding:12px 24px;font-size:12.5px;color:#334;line-height:1.7;border-bottom:1px solid #dde6f5;}
+  .rec-cond b{color:#1a73e8;}
+  .rec-body{padding:18px 24px;}
+  .rec-card{display:flex;gap:14px;padding:14px;border:1px solid #e6eaf0;border-radius:12px;margin-bottom:12px;}
+  .rec-rank{flex:0 0 38px;height:38px;border-radius:50%;background:#1a73e8;color:#fff;font-weight:800;font-size:17px;display:flex;align-items:center;justify-content:center;}
+  .rec-card:nth-child(1) .rec-rank{background:#f4b400;color:#5a4500;}
+  .rec-card:nth-child(2) .rec-rank{background:#9aa7b5;}
+  .rec-card:nth-child(3) .rec-rank{background:#cd7f32;}
+  .rec-main{flex:1;min-width:0;}
+  .rec-name{font-size:16px;font-weight:800;color:#1a2233;}
+  .rec-name .gu{font-size:12px;font-weight:600;color:#7a8699;margin-left:6px;}
+  .rec-kv{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:#445;margin:6px 0;}
+  .rec-kv b{color:#1a73e8;}
+  .rec-why{font-size:12.5px;color:#2e7d32;background:#eafaf0;padding:6px 10px;border-radius:7px;margin-top:4px;}
+  .rec-tag{display:inline-block;font-size:10.5px;font-weight:700;background:#e3f0ff;color:#1559b8;border-radius:5px;padding:1px 7px;margin-left:4px;}
+  .rec-tag.semi{background:#e7f7ee;color:#1b8a4b;}
+  .rec-foot{padding:14px 24px 22px;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;border-top:1px solid #eef0f4;}
+  .rec-foot button{padding:10px 18px;border-radius:9px;font-size:13.5px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:#fff;}
+  .rec-foot .pdf{background:#1a73e8;color:#fff;border-color:#1a73e8;}
+  .rec-disc{font-size:10.5px;color:#94a0ad;padding:0 24px 18px;line-height:1.5;}
+  @media print{
+    body>*{display:none!important;}
+    #rec-modal{display:block!important;position:static;background:#fff;padding:0;overflow:visible;}
+    #rec-modal *{visibility:visible;}
+    #rec-print{box-shadow:none;max-width:100%;}
+    .rec-foot{display:none!important;}
+  }
   </style>
 </head>
 <body>
@@ -177,7 +214,8 @@
 <header>
   <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
     <h1>🏙️ 실리콘 네스트 <span>경기 남부 아파트 실거래가 · 20억 이하 · 84㎡ 이상</span></h1>
-    <a href="./analysis.html" style="margin-left:auto;background:#1a73e8;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:700;white-space:nowrap">🧭 내 갈아타기 분석 →</a>
+    <button id="btn-rec" class="hdr-btn" style="margin-left:auto">✨ 맞춤 아파트 추천 5</button>
+    <a href="./analysis.html" class="hdr-btn admin">🧭 내 갈아타기 분석 →</a>
   </div>
   <div class="hdr-right">
     <span id="sample-badge" class="badge" style="display:none">샘플 데이터</span>
@@ -273,6 +311,21 @@
   </div>
 </div>
 
+<div id="rec-modal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div id="rec-print">
+    <div class="rec-hd">
+      <h2>✨ 맞춤 아파트 추천 TOP 5</h2>
+      <p id="rec-date"></p>
+    </div>
+    <div class="rec-cond" id="rec-cond"></div>
+    <div class="rec-body" id="rec-list"></div>
+    <div class="rec-disc">※ 입력하신 조건에 맞는 실거래 데이터를 단지별로 집계해 거래활발도·연식·가격추세·반도체클러스터 인접·가성비를 종합 점수화한 결과입니다. 투자 판단의 참고용이며 실제 매수 전 현장·권리·세금 확인이 필요합니다.</div>
+    <div class="rec-foot">
+      <button onclick="window.print()" class="pdf">📄 PDF로 저장</button>
+      <button onclick="document.getElementById('rec-modal').classList.remove('open')">닫기</button>
+    </div>
+  </div>
+</div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
@@ -620,6 +673,65 @@ const _initPromise = init().catch(e=>{console.error(e);});
     s.classList.add('fade'); setTimeout(()=>s.remove(),700);
   });
 })();
+// ── 맞춤 아파트 추천 5 (일반 사용자용) ──
+function buildRecommendations(){
+  const src = (filtered && filtered.length) ? filtered : (allData?allData.transactions:[]);
+  // 조건 요약
+  const gu = selGu || document.getElementById('f-gu').value || '경기남부 전체';
+  const maxP = document.getElementById('s-max-p').value, minP = document.getElementById('s-min-p').value;
+  const minA = document.getElementById('s-area').value, yr = document.getElementById('f-year').value;
+  const hOnly = document.getElementById('t-hangang').checked;
+  document.getElementById('rec-date').textContent = '생성일 '+new Date().toLocaleDateString('ko-KR')+' · 실리콘 네스트 · 경기남부 실거래 기반';
+  document.getElementById('rec-cond').innerHTML =
+    `📍 지역 <b>${gu}</b> · 💰 가격 <b>${minP}~${maxP}억</b> · 📐 전용 <b>${minA}㎡ 이상</b>`+
+    (yr?` · 🏗️ <b>${yr}년 이후</b>`:'')+(hOnly?` · <b>반도체 클러스터만</b>`:'')+
+    ` · 대상거래 <b>${src.length.toLocaleString()}건</b>`;
+
+  if(!src.length){ document.getElementById('rec-list').innerHTML='<p style="text-align:center;color:#888;padding:30px">조건에 맞는 거래가 없습니다. 필터를 완화해 주세요.</p>'; return; }
+
+  // 단지별 집계 (단지명+구 기준)
+  const maxDate = src.reduce((m,t)=>t.거래일>m?t.거래일:m,'');
+  const cut = new Date(new Date(maxDate)-90*864e5).toISOString().slice(0,10);
+  const g={};
+  src.forEach(t=>{ const k=t.단지명+'|'+t.구; (g[k]=g[k]||{name:t.단지명,gu:t.구,ps:[],recent:[],old:[],yr:0,semi:t.한강인근,no:t.네이버단지번호,co:t.네이버좌표,areas:[]});
+    const o=g[k]; o.ps.push(t.거래금액_억); o.areas.push(t.전용면적); o.yr=Math.max(o.yr,parseInt(t.건축연도)||0);
+    (t.거래일>=cut?o.recent:o.old).push(t.거래금액_억); if(!o.no&&t.네이버단지번호)o.no=t.네이버단지번호; });
+
+  const med = (a)=>{a=a.slice().sort((x,y)=>x-y);return a.length?a[Math.floor(a.length/2)]:0;};
+  const allAvg = src.reduce((s,t)=>s+t.거래금액_억,0)/src.length;
+  const cand=[];
+  Object.values(g).forEach(o=>{
+    if(o.ps.length<2) return;                       // 거래 1건 단지 제외(이상치 방지)
+    const avg=o.ps.reduce((s,x)=>s+x,0)/o.ps.length;
+    const rAvg=o.recent.length?o.recent.reduce((s,x)=>s+x,0)/o.recent.length:null;
+    const oAvg=o.old.length?o.old.reduce((s,x)=>s+x,0)/o.old.length:null;
+    const trend=(rAvg!=null&&oAvg)?((rAvg-oAvg)/oAvg*100):null;
+    let sc=0; const why=[];
+    if(o.ps.length>=20){sc+=2;why.push('거래 활발('+o.ps.length+'건)');} else if(o.ps.length>=8){sc+=1;why.push('거래 안정('+o.ps.length+'건)');}
+    if(o.yr>=2018){sc+=2;why.push('신축급('+o.yr+'년)');} else if(o.yr>=2010){sc+=1;why.push(o.yr+'년식');}
+    if(trend!=null){ if(trend>0){sc+=2;why.push('상승추세 +'+trend.toFixed(1)+'%');} else if(trend>-3){sc+=1;} else {why.push(trend.toFixed(1)+'% 조정');} }
+    if(o.semi){sc+=2;why.push('반도체 클러스터');}
+    if(avg<=allAvg){sc+=1;why.push('가성비(평균이하)');}
+    cand.push({...o,avg,trend,sc,why,aMin:Math.min(...o.areas),aMax:Math.max(...o.areas)});
+  });
+  cand.sort((a,b)=> b.sc-a.sc || (b.trend??-99)-(a.trend??-99) || b.ps.length-a.ps.length);
+  const top=cand.slice(0,5);
+
+  document.getElementById('rec-list').innerHTML = top.length? top.map((o,i)=>{
+    const tr = o.trend==null?'<span style="color:#999">신규/보합</span>'
+      : o.trend>0?`<b style="color:#d33">▲ +${o.trend.toFixed(1)}%</b>`:`<span style="color:#1a73e8">▼ ${o.trend.toFixed(1)}%</span>`;
+    const url = o.no? `https://m.land.naver.com/complex/main?complexNo=${o.no}` : (o.co?`https://m.land.naver.com/map/${o.co.split(',')[1]}:${o.co.split(',')[0]}:16`:'#');
+    return `<div class="rec-card">
+      <div class="rec-rank">${i+1}</div>
+      <div class="rec-main">
+        <div class="rec-name">${o.name}<span class="gu">${o.gu}</span>${o.semi?'<span class="rec-tag semi">반도체</span>':''}${o.yr>=2018?'<span class="rec-tag">신축</span>':''}</div>
+        <div class="rec-kv"><span>평균 <b>${o.avg.toFixed(1)}억</b></span><span>최근추세 ${tr}</span><span>건축 <b>${o.yr}년</b></span><span>전용 ${o.aMin.toFixed(0)}~${o.aMax.toFixed(0)}㎡</span><span>거래 ${o.ps.length}건</span></div>
+        <div class="rec-why">👍 ${o.why.join(' · ')}</div>
+        <a href="${url}" target="_blank" style="font-size:12px;color:#03c75a;font-weight:700;text-decoration:none">📍 네이버부동산에서 보기 →</a>
+      </div></div>`;
+  }).join('') : '<p style="text-align:center;color:#888;padding:30px">조건에 맞는 추천 단지가 부족합니다(거래 2건 이상 필요). 필터를 완화해 주세요.</p>';
+}
+document.getElementById('btn-rec').addEventListener('click',()=>{ buildRecommendations(); document.getElementById('rec-modal').classList.add('open'); });
 </script>
 </body>
 </html>

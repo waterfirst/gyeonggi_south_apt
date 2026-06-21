@@ -376,7 +376,7 @@ async function init(){
 // ── Leaflet 지도 ──
 function initMap(){
   leafletMap = L.map('leaflet-map', {
-    center:[37.24, 127.08], zoom:10,
+    center:[37.16, 127.20], zoom:9,
     zoomControl:true, scrollWheelZoom:true
   });
 
@@ -424,6 +424,35 @@ function initMap(){
 
     guLayers[name] = {layer, isH};
   });
+
+  // ── 반도체 공장 마커 (삼성=파랑 #1428A0, SK하이닉스=빨강 #EA002C / 🏭 가동, 🏗️ 예정) ──
+  const FABS=[
+    {n:'삼성전자 기흥캠퍼스', c:'삼성', s:'가동', co:[37.226779,127.083728], d:'메모리·시스템LSI'},
+    {n:'삼성전자 화성캠퍼스', c:'삼성', s:'가동', co:[37.219989,127.064960], d:'파운드리·EUV'},
+    {n:'삼성전자 평택캠퍼스', c:'삼성', s:'가동·확장', co:[37.034724,127.060110], d:'세계최대 P1~P4(P5·6 예정)'},
+    {n:'삼성 용인 시스템반도체 국가산단', c:'삼성', s:'예정', co:[37.115721,127.150639], d:'남사·이동읍 6개팹 360조(~2030)'},
+    {n:'SK하이닉스 이천캠퍼스', c:'SK', s:'가동', co:[37.251918,127.490093], d:'M14·M16 본사'},
+    {n:'SK하이닉스 용인 반도체클러스터', c:'SK', s:'건설·예정', co:[37.166692,127.313244], d:'원삼면 4개팹 122조(2027 첫팹)'}
+  ];
+  FABS.forEach(f=>{
+    const col = f.c==='삼성' ? '#1428A0' : '#EA002C';
+    const planned = f.s.includes('예정');
+    const html = planned
+      ? `<div style="width:27px;height:27px;border-radius:7px;border:2px dashed ${col};background:rgba(255,255,255,.93);display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 1px 4px rgba(0,0,0,.3)">🏗️</div>`
+      : `<div style="width:27px;height:27px;border-radius:7px;background:${col};display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 1px 5px rgba(0,0,0,.45)">🏭</div>`;
+    L.marker(f.co,{icon:L.divIcon({className:'',html,iconAnchor:[13,13]}),zIndexOffset:1000})
+      .addTo(leafletMap)
+      .bindTooltip(`<b style="color:${col}">${f.n}</b><br>${f.s} · ${f.d}`,{direction:'top',offset:[0,-12]});
+  });
+  // 공장 범례
+  const lg=L.control({position:'bottomright'});
+  lg.onAdd=function(){const d=L.DomUtil.create('div');
+    d.style.cssText='background:rgba(255,255,255,.93);padding:6px 9px;border-radius:7px;font-size:10.5px;line-height:1.8;box-shadow:0 1px 5px rgba(0,0,0,.25);font-family:Noto Sans KR,sans-serif';
+    d.innerHTML='<div style="font-weight:700;margin-bottom:1px">반도체 공장</div>'+
+      '<div><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#1428A0;vertical-align:-2px"></span> 삼성 &nbsp;<span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#EA002C;vertical-align:-2px"></span> SK하이닉스</div>'+
+      '<div>🏭 가동 &nbsp; 🏗️ 예정/건설</div>';
+    return d;};
+  lg.addTo(leafletMap);
 }
 
 function onGuClick(name, layer, isH){

@@ -1,4 +1,4 @@
-// ── 서울 아파트 실거래가 대시보드 ──
+// ── 경기 남부 아파트 실거래가 대시보드 (heekeunlee/seoul_apt fork) ──
 const DATA_URL = './data/transactions.json';
 const PAGE_SIZE = 20;
 

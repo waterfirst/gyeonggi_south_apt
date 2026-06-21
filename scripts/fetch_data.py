@@ -1,8 +1,8 @@
 """
 국토교통부 아파트 매매 실거래가 수집 스크립트
-- 서울 25개 구 전체
+- 경기 남부 31개 시군구
 - 최근 12개월
-- 25억 이하, 전용면적 84㎡ 이상 필터
+- 20억 이하, 전용면적 84㎡ 이상 필터
 - Naver Local Search API로 좌표 조회 → 정확한 위치 링크 생성
 """
 
@@ -14,11 +14,13 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
-API_KEY = os.environ.get("MOLIT_API_KEY", "FNRUoAx54GnO18NkzyJFWX1fLrmw4CmB5dsVtAkF6NFV6jbuJUqEhcG9VzCO0WkGHkerkCKrObHQGSBxEXHcpQ==")
+API_KEY = os.environ.get("MOLIT_API_KEY")  # 헌법 제2조: 하드코딩 금지. GitHub Actions secrets 또는 env로 주입.
+if not API_KEY:
+    raise SystemExit("MOLIT_API_KEY 미설정 — GitHub Actions secrets에 본인 국토부 키를 넣으세요.")
 BASE_URL = "https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev"
 
-NAVER_CLIENT_ID = os.environ.get("NAVER_CLIENT_ID", "0QrM73nSAb9WQg_rysfa")
-NAVER_CLIENT_SECRET = os.environ.get("NAVER_CLIENT_SECRET", "Rao5GYcu0i")
+NAVER_CLIENT_ID = os.environ.get("NAVER_CLIENT_ID", "")
+NAVER_CLIENT_SECRET = os.environ.get("NAVER_CLIENT_SECRET", "")
 
 _naver_cache = {}
 
@@ -112,37 +114,21 @@ def _get_land_complex_no(apt_name, gu_name):
         pass
     return ""
 
-# 서울 25개 구 법정동코드
-SEOUL_DISTRICTS = {
-    "종로구": "11110",
-    "중구": "11140",
-    "용산구": "11170",
-    "성동구": "11200",
-    "광진구": "11215",
-    "동대문구": "11230",
-    "중랑구": "11260",
-    "성북구": "11290",
-    "강북구": "11305",
-    "도봉구": "11320",
-    "노원구": "11350",
-    "은평구": "11380",
-    "서대문구": "11410",
-    "마포구": "11440",
-    "양천구": "11470",
-    "강서구": "11500",
-    "구로구": "11530",
-    "금천구": "11545",
-    "영등포구": "11560",
-    "동작구": "11590",
-    "관악구": "11620",
-    "서초구": "11650",
-    "강남구": "11680",
-    "송파구": "11710",
-    "강동구": "11740",
+# 경기 남부 시군구 법정동코드 (2026-06 국토부 API 실측 검증 완료)
+GYEONGGI_SOUTH_DISTRICTS = {
+    "수원시 장안구": "41111", "수원시 권선구": "41113", "수원시 팔달구": "41115", "수원시 영통구": "41117",
+    "성남시 수정구": "41131", "성남시 중원구": "41133", "성남시 분당구": "41135",
+    "안양시 만안구": "41171", "안양시 동안구": "41173",
+    "부천시 원미구": "41192", "부천시 소사구": "41194", "부천시 오정구": "41196",
+    "광명시": "41210", "평택시": "41220",
+    "안산시 상록구": "41271", "안산시 단원구": "41273", "과천시": "41290",
+    "오산시": "41370", "시흥시": "41390", "군포시": "41410", "의왕시": "41430", "하남시": "41450",
+    "용인시 처인구": "41461", "용인시 기흥구": "41463", "용인시 수지구": "41465",
+    "이천시": "41500", "안성시": "41550", "김포시": "41570", "화성시": "41591", "광주시": "41610", "여주시": "41670",
 }
 
-# 한강 인근 지역
-HANGANG_DISTRICTS = {"마포구", "용산구", "영등포구", "성동구", "광진구", "동작구", "강동구", "강남구", "서초구", "송파구"}
+# 우선관심 지역(파란색 강조). 거주/직장/학군 우선 클러스터 — 편집 가능.
+PRIORITY_DISTRICTS = {"용인시 수지구", "성남시 분당구", "수원시 영통구", "과천시", "안양시 동안구", "하남시"}
 
 MAX_PRICE = 200000  # 20억 (만원 단위)
 MIN_AREA = 84.0     # 84㎡
@@ -242,14 +228,14 @@ def main():
     yearmonths = get_yearmonths(12)
     all_transactions = []
 
-    for gu_name, lawd_cd in SEOUL_DISTRICTS.items():
+    for gu_name, lawd_cd in GYEONGGI_SOUTH_DISTRICTS.items():
         print(f"\n[{gu_name}] 수집 중...")
         gu_count = 0
         for ym in yearmonths:
             items = fetch_transactions(lawd_cd, ym)
             for item in items:
                 item["구"] = gu_name
-                item["한강인근"] = gu_name in HANGANG_DISTRICTS
+                item["한강인근"] = gu_name in PRIORITY_DISTRICTS  # 우선관심(파란색)
             all_transactions.extend(items)
             gu_count += len(items)
             time.sleep(0.2)  # API 과부하 방지

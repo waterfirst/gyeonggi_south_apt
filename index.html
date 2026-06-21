@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=1200">
-  <title>아파트 왓 — 서울 아파트 실거래가</title>
+  <title>아파트 왓 — 경기 남부 아파트 실거래가</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&family=Black+Han+Sans&family=Nanum+Myeongjo:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -181,7 +181,7 @@
 
 <header>
   <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-    <h1>🌉 아파트 왓 <span>서울 아파트 실거래가 · 25억 이하 · 84㎡ 이상</span></h1>
+    <h1>🏙️ 아파트 왓 <span>경기 남부 아파트 실거래가 · 20억 이하 · 84㎡ 이상</span></h1>
   </div>
   <div class="hdr-right">
     <span id="sample-badge" class="badge" style="display:none">샘플 데이터</span>
@@ -193,7 +193,7 @@
   <!-- 왼쪽: 지도 -->
   <div class="left">
     <div class="map-card">
-      <h2>📍 서울시 구별 거래 현황 <small style="font-weight:400">— 구 클릭 시 필터</small></h2>
+      <h2>📍 경기 남부 시군구별 거래 현황 <small style="font-weight:400">— 구 클릭 시 필터</small></h2>
       <div id="leaflet-map"></div>
       <div class="legend">
         <div class="leg-item"><div class="leg-dot" style="background:#b3e5fc;border:1px solid #0288d1"></div>한강 인근</div>
@@ -208,7 +208,7 @@
     <!-- 분석 기준 인라인 텍스트 -->
     <div style="padding:10px 14px;font-size:10px;color:#9e9e9e;line-height:1.7;background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);">
       <strong style="color:#bdbdbd;font-size:10px;">📌 데이터 출처</strong> 국토교통부 아파트 매매 실거래가 API (공공데이터포털) — 실제 신고 계약만 포함, 추정·호가 제외<br>
-      <strong style="color:#bdbdbd;font-size:10px;">🔍 필터</strong> 서울 25개 구 / 거래금액 25억 이하 / 전용면적 84㎡ 이상 / 최근 12개월<br>
+      <strong style="color:#bdbdbd;font-size:10px;">🔍 필터</strong> 경기 남부 31개 시군구 / 거래금액 20억 이하 / 전용면적 84㎡ 이상 / 최근 12개월<br>
       <strong style="color:#bdbdbd;font-size:10px;">🏞️ 한강 인근</strong> 마포·용산·영등포·성동·광진·동작·강동·강남·서초·송파구<br>
       <strong style="color:#bdbdbd;font-size:10px;">🔄 업데이트</strong> GitHub Actions 매일 오전 9시(KST) 자동 갱신 — 국토부 신고 의무기한(30일)으로 1~4주 지연 가능<br>
       <span style="color:#c0c0c0;">⚠️ 개인 투자 참고용이며 실제 매수 결정 전 전문가 확인을 권장합니다.</span>
@@ -281,7 +281,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
 const DATA_URL = './data/transactions.json';
-const GEO_URL  = './data/seoul_districts.geojson';
+const GEO_URL  = './data/gyeonggi_south.geojson';
 const PS = 20;
 const HG = new Set(['마포구','용산구','영등포구','성동구','광진구','동작구','강동구','강남구','서초구','송파구']);
 
@@ -309,7 +309,7 @@ async function init(){
 // ── Leaflet 지도 ──
 function initMap(){
   leafletMap = L.map('leaflet-map', {
-    center:[37.5630, 126.9784], zoom:10,
+    center:[37.30, 127.05], zoom:10,
     zoomControl:true, scrollWheelZoom:true
   });
 

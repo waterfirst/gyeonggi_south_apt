@@ -72,14 +72,11 @@ def get_naver_info(apt_name, gu_name):
                     except (ValueError, TypeError):
                         pass
 
-        time.sleep(0.12)  # rate limit 준수
+        time.sleep(0.05)  # rate limit
     except Exception as e:
         print(f"  Naver API 오류 [{apt_name}]: {e}")
 
-    # 단지번호가 없으면 Naver Land 내부 검색 API 추가 시도
-    if not result["네이버단지번호"]:
-        result["네이버단지번호"] = _get_land_complex_no(apt_name, gu_name)
-
+    # (성능) 느린 Land 내부검색 폴백 제거 — 좌표만 있으면 충분
     _naver_cache[key] = result
     return result
 
@@ -238,7 +235,7 @@ def main():
                 item["한강인근"] = gu_name in PRIORITY_DISTRICTS  # 우선관심(파란색)
             all_transactions.extend(items)
             gu_count += len(items)
-            time.sleep(0.2)  # API 과부하 방지
+            time.sleep(0.05)
         print(f"  → {gu_count}건 수집")
 
     # ── Naver 좌표/ID 조회 (고유 단지별 1회) ──

@@ -596,7 +596,7 @@ document.getElementById('btn-reset').addEventListener('click',()=>{
   applyFilters();
 });
 
-init().catch(console.error);
+const _initPromise = init().catch(e=>{console.error(e);});
 
 // 스플래시: 모바일에서 viewport=1200으로 축소된 콘텐츠를 화면 크기에 맞게 역보정
 (function(){
@@ -611,12 +611,15 @@ init().catch(console.error);
     if(sc > 1.2) si.style.transform = 'scale(' + sc + ')';
   }
 }());
-// 스플래시 3초 후 제거
-setTimeout(()=>{
-  const s=document.getElementById('splash');
-  s.classList.add('fade');
-  setTimeout(()=>s.remove(),700);
-},3000);
+// 스플래시: 데이터 로딩 완료 시 제거(최소 1.2s 노출, 실패해도 25s 캡)
+(function(){
+  const minShow = new Promise(r=>setTimeout(r,1200));
+  const maxCap  = new Promise(r=>setTimeout(r,25000));
+  Promise.race([ Promise.all([_initPromise, minShow]), maxCap ]).then(()=>{
+    const s=document.getElementById('splash'); if(!s) return;
+    s.classList.add('fade'); setTimeout(()=>s.remove(),700);
+  });
+})();
 </script>
 </body>
 </html>

@@ -33,6 +33,7 @@
     @media(min-width:1200px){.layout{grid-template-columns:440px 1fr;}}  /* 데스크톱: 넓은 사이드바 */
 
     /* 왼쪽 */
+    .left,.right{min-width:0;}  /* grid 트랙이 표 등 콘텐츠에 밀려 넘치는 것 방지 */
     .left{display:flex;flex-direction:column;gap:12px;}
     .map-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px;}
     .map-card h2{font-size:13px;font-weight:700;color:var(--muted);margin-bottom:8px;}
@@ -187,7 +188,7 @@
     .legend{font-size:13px;}
     .gu-placeholder{font-size:14px;}
     .gu-stat .v{font-size:23px;}.gu-stat .l{font-size:13px;}
-    .sum-cards{gap:9px;}
+    .sum-cards{grid-template-columns:repeat(2,1fr);gap:9px;}
     .sum-card .v{font-size:24px;}.sum-card .l{font-size:13px;}
     .fg-grid{grid-template-columns:1fr 1fr;}
     .fg label{font-size:13px;}

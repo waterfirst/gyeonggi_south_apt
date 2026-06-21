@@ -28,8 +28,9 @@
     .badge{background:#ff6d00;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;}
     .info-btn{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.5);color:#fff;border-radius:20px;padding:4px 12px;font-size:12px;cursor:pointer;}
 
-    .layout{display:grid;grid-template-columns:440px 1fr;gap:14px;padding:14px;max-width:1600px;margin:0 auto;}
-    @media(max-width:1050px){.layout{grid-template-columns:1fr;}}
+    .layout{display:grid;grid-template-columns:1fr;gap:14px;padding:14px;max-width:1600px;margin:0 auto;}
+    @media(min-width:900px){.layout{grid-template-columns:360px 1fr;}}   /* 태블릿 가로·소형 데스크톱: 사이드바 */
+    @media(min-width:1200px){.layout{grid-template-columns:440px 1fr;}}  /* 데스크톱: 넓은 사이드바 */
 
     /* 왼쪽 */
     .left{display:flex;flex-direction:column;gap:12px;}
@@ -49,8 +50,7 @@
 
     /* 오른쪽 */
     .right{display:flex;flex-direction:column;gap:12px;}
-    .sum-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
-    @media(max-width:700px){.sum-cards{grid-template-columns:repeat(3,1fr);}}
+    .sum-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;}
     .sum-card{background:var(--card);border-radius:var(--radius);padding:12px;box-shadow:var(--shadow);text-align:center;}
     .sum-card .v{font-size:20px;font-weight:700;color:var(--primary);}
     .sum-card .l{font-size:11px;color:var(--muted);margin-top:2px;}
@@ -187,7 +187,7 @@
     .legend{font-size:13px;}
     .gu-placeholder{font-size:14px;}
     .gu-stat .v{font-size:23px;}.gu-stat .l{font-size:13px;}
-    .sum-cards{grid-template-columns:repeat(2,1fr);gap:9px;}
+    .sum-cards{gap:9px;}
     .sum-card .v{font-size:24px;}.sum-card .l{font-size:13px;}
     .fg-grid{grid-template-columns:1fr 1fr;}
     .fg label{font-size:13px;}
@@ -216,6 +216,27 @@
     .rec-why{font-size:13.5px;}
     .rec-foot button{font-size:15px;padding:12px 18px;}
   }
+  /* ── 태블릿 최적화 (641~1024) ── */
+  @media(min-width:641px) and (max-width:1024px){
+    body{font-size:15px;}
+    header h1{font-size:19px;}
+    .hdr-btn{font-size:14px;padding:9px 15px;}
+    #leaflet-map{height:440px;}
+    .map-card h2,.filter-card h2,.ch-card h3{font-size:14px;}
+    .sum-card .v{font-size:22px;}.sum-card .l{font-size:12px;}
+    .gu-stat .v{font-size:21px;}.gu-stat .l{font-size:12px;}
+    .fg label{font-size:12px;}
+    .fg select,.fg input[type=text]{font-size:14px;padding:9px 11px;}
+    .rv{font-size:12px;}
+    th{font-size:12px;padding:10px 12px;}
+    td{font-size:13.5px;padding:10px 12px;}
+    .pc{font-size:14px;}
+    .srch{font-size:14px;width:200px;}
+    .ch-wrap{height:215px;}
+    .pg button{font-size:13.5px;padding:7px 12px;}
+  }
+  /* 태블릿 가로(2열)일 때 사이드바 지도 높이 */
+  @media(min-width:900px) and (max-width:1024px){ #leaflet-map{height:380px;} }
   </style>
 </head>
 <body>

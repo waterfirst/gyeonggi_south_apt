@@ -300,6 +300,8 @@ def main():
         json.dump(output, f, ensure_ascii=False, indent=2)
 
     print(f"\n=== 완료: 총 {len(all_transactions)}건 수집 → data/transactions.json 저장 ===")
+    with open(os.path.join(os.path.dirname(__file__),"..","data","version.json"),"w",encoding="utf-8") as vf:
+        json.dump({"updated_at": output["updated_at"]}, vf, ensure_ascii=False)
 
 
 if __name__ == "__main__":

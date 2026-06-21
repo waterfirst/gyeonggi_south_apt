@@ -286,14 +286,25 @@ let sortK='거래금액', sortAsc=false, selGu=null;
 let charts={}, leafletMap=null, guLayers={};
 
 // ── 초기화 ──
+async function cachedJson(url, ver){
+  const key = url + '?v=' + encodeURIComponent(ver);
+  if(!('caches' in window)) return fetch(key);
+  try{
+    const c = await caches.open('apt-data');
+    let r = await c.match(key);
+    if(!r){ r = await fetch(key); if(r && r.ok){ try{ await c.put(key, r.clone()); }catch(e){} } }
+    return r;
+  }catch(e){ return fetch(key); }
+}
 async function init(){
-  const [dr, gr] = await Promise.all([
-    fetch(DATA_URL+'?t='+Date.now()),
-    fetch(GEO_URL+'?t='+Date.now())
-  ]);
+  let ver = 'init';
+  try{ const vr = await fetch('./data/version.json?t='+Date.now()); if(vr.ok){ ver = (await vr.json()).updated_at || 'init'; } }catch(e){}
+  // 구버전 캐시 정리
+  try{ const c=await caches.open('apt-data'); for(const k of await c.keys()){ if(!k.url.includes('v='+encodeURIComponent(ver))) await c.delete(k); } }catch(e){}
+  const [dr, gr] = await Promise.all([ cachedJson(DATA_URL, ver), cachedJson(GEO_URL, ver) ]);
   allData = await dr.json();
-  try { geojsonData = gr.ok ? await gr.json() : {type:'FeatureCollection',features:[]}; }
-  catch(e){ geojsonData = {type:'FeatureCollection',features:[]}; console.warn('geojson 없음 — 지도 경계 생략'); }
+  try { geojsonData = (gr && gr.ok) ? await gr.json() : {type:'FeatureCollection',features:[]}; }
+  catch(e){ geojsonData = {type:'FeatureCollection',features:[]}; console.warn('geojson 없음'); }
 
   document.getElementById('updated-at').textContent = '업데이트: '+allData.updated_at;
   if(allData.note) document.getElementById('sample-badge').style.display='inline';

@@ -2,93 +2,65 @@
 <title>내 갈아타기 분석 · 경기남부 아파트</title>
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 <link rel=stylesheet href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<style>
-:root{--b:#0b4f6c;--a:#1a73e8;--g:#e8f0fe;--ok:#137333;--warn:#b06000;--line:#e3e8ee;--mut:#5f6b7a}
-*{box-sizing:border-box}body{font-family:-apple-system,'Malgun Gothic',sans-serif;margin:0;color:#1a2330;background:#f4f6f9;line-height:1.6}
+<style>:root{--bg:#0b0e14;--card:#141925;--line:#232c3d;--tx:#e8edf5;--mut:#93a1b5;--a:#19d3a7;--am:#f5a623;--bl:#4f9bff;--ok:#137333;--warn:#b06000}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,'Malgun Gothic',sans-serif;background:#f4f6f9;color:#1a2330;line-height:1.6}
 .wrap{max-width:920px;margin:0 auto;padding:0 16px 60px}
 header{background:linear-gradient(135deg,#0b4f6c,#1a73e8);color:#fff;padding:30px 24px;border-radius:0 0 18px 18px}
 header h1{margin:0 0 6px;font-size:24px}header .sub{opacity:.92;font-size:14px}header .meta{margin-top:12px;font-size:12px;opacity:.85;border-top:1px solid rgba(255,255,255,.25);padding-top:9px}
-h2{font-size:19px;color:var(--b);border-left:5px solid var(--a);padding-left:11px;margin:30px 0 12px}h3{font-size:15px;margin:14px 0 6px}
-.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:12px 0;box-shadow:0 1px 3px rgba(0,0,0,.04)}
-.concl{background:var(--g);border:1px solid #c5d9f8;border-radius:12px;padding:16px 18px;margin:14px 0}.concl b{color:var(--b)}
-table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
-th{background:#f0f4f9;color:#33414f;font-size:12px}td.num{text-align:right}td.nm{font-weight:700}td.sc{text-align:right;font-weight:700;color:var(--a)}
+h2{font-size:19px;color:#0b4f6c;border-left:5px solid #1a73e8;padding-left:11px;margin:30px 0 12px}h3{font-size:15px;margin:14px 0 6px}
+.card{background:#fff;border:1px solid #e3e8ee;border-radius:12px;padding:16px 18px;margin:12px 0;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.concl{background:#e8f0fe;border:1px solid #c5d9f8;border-radius:12px;padding:16px 18px;margin:14px 0}.concl b{color:#0b4f6c}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 9px;border-bottom:1px solid #e3e8ee;text-align:left;vertical-align:top}
+th{background:#f0f4f9;color:#33414f;font-size:12px}td.num{text-align:right}td.nm{font-weight:700}td.sc{text-align:right;font-weight:700;color:#1a73e8}
 ul{margin:0;padding-left:17px}li{margin:3px 0}ul.pro li{color:#137333}ul.con li{color:#b06000}
-.pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;margin-right:4px}.p-ok{background:#e6f4ea;color:var(--ok)}.p-warn{background:#fef7e0;color:var(--warn)}
+.pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;margin-right:4px}.p-ok{background:#e6f4ea;color:#137333}.p-warn{background:#fef7e0;color:#b06000}
 .kv{display:grid;grid-template-columns:130px 1fr;gap:4px 12px;font-size:13px}.kv b{color:#33414f}
-#map{height:330px;border-radius:10px}#trend{height:320px}#chart{height:300px}
-.small{font-size:11.5px;color:var(--mut)}.leg{font-size:12px;color:var(--mut);margin-top:6px}.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin:0 3px 0 10px}
+#map{height:330px;border-radius:10px}#trend{height:320px}
+.small{font-size:11.5px;color:#5f6b7a}.leg{font-size:12px;color:#5f6b7a;margin-top:6px}.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin:0 3px 0 10px}
 .warnbox{background:#fef7e0;border:1px solid #f9e3a0;border-radius:10px;padding:11px 15px;font-size:13px}
-.foot{margin-top:26px;font-size:11px;color:var(--mut);border-top:1px solid var(--line);padding-top:12px}a.home{color:#cfe3ff;text-decoration:none}
-</style></head><body>
+.foot{margin-top:26px;font-size:11px;color:#5f6b7a;border-top:1px solid #e3e8ee;padding-top:12px}a.home{color:#cfe3ff;text-decoration:none}</style></head><body>
 <header><h1>🧭 내 갈아타기 분석 (구성역·반도체클러스터)</h1>
 <div class=sub><a class=home href="./index.html">← 대시보드(실거래 지도)</a> · 신봉마을LG자이 매도 → 구성역권 매수</div>
-<div class=meta>작성 2026-06-21 · 국토부 실거래가·네이버·Gemini 검증 · Claude+GPT-5.5+Gemini 재귀검증 · 가격=84~99㎡ 월평균 추세</div></header>
+<div class=meta>작성 2026-06-21 · 국토부 실거래가(사용자 키·운영API)·네이버·Gemini 검증 · 가격=동(洞)일치 84~99㎡ 추세</div></header>
 <div class=wrap>
-
-<div class=concl><b>핵심.</b> 통근·학군 제약 해소 + 퇴직 노후까지 보면 <b>미래가치+역세권+신축</b>이 답. 등록임대로 오피스텔 주택수 빠져 양도세 비과세·취득세 일반(1억+ 절세). 추세상 <b>효성해링턴(~6.5억)은 현재집보다 싸</b> 여유가 생기고, 신축을 원하면 <b>e편한세상(84㎡ ~11.6억)도 8+5=13억으로 도달</b>.</div>
-
+<div class=concl><b>핵심.</b> 통근·학군 해소 + 퇴직 노후까지 보면 <b>미래가치+역세권+신축</b>이 답. 등록임대로 오피스텔 주택수 빠져 세금 유리. <b>효성해링턴(~8.4억)은 현재집과 동가</b>라 대출 거의 없이 갈아타기, <b>힐스테이트(~9.8억)는 8+5로 충분</b>, <b>e편한세상(~14.45억)은 신축이지만 신용 포함 풀스택 필요</b>.</div>
 <h2>1. 현재 상황 & 생애 4단계</h2><div class=card><div class=kv>
-<b>현 거주</b><span>신봉마을LG자이1차(수지 신봉동, 전용83㎡) · 최근 실거래 8.15억</span>
-<b>직장</b><span>삼성디스플레이 아산 · 8월부터 평일 기숙사(데일리 통근 불요)</span>
-<b>자녀</b><span>두 아들 내년부터 대학 기숙사(학군 제약 해소)</span>
-<b>주거주자</b><span>와이프 주중 단독 → 신축 관리·보안 중요</span>
-<b>지향</b><span>미래가치 + 부부 거주 + 퇴직 후 노후 거주</span></div></div>
-
-<h2>2. 세금 구조 <span class="pill p-ok">유리</span></h2><div class=card>
-등록 임대사업(장기10년)으로 <b>오피스텔 주택수 미포함</b> → 신봉=1주택 취급.
-<ul><li>양도세: 신봉 <b>1세대1주택 비과세 가능</b>(2년 거주 등)</li>
-<li>취득세: 새 아파트 <b>일반 3.3%</b>(중과 회피, 14억기준 1억+ 절세)</li>
-<li>대출: 주택안정대출 "1주택 같은날 매도/매수" 자격</li>
-<li><span class="pill p-warn">제약</span> 명지는 10년 의무 후 매도 → 즉시 상환재원 아님</li></ul></div>
-
+<b>현 거주</b><span>신봉마을LG자이1차(수지 신봉동, 전용83㎡)·최근 8.15억</span>
+<b>직장</b><span>아산·8월부터 평일 기숙사(데일리 통근 불요)</span>
+<b>자녀</b><span>두 아들 내년부터 대학 기숙사(학군 해소)</span>
+<b>주거주자</b><span>와이프 주중 단독→신축 관리·보안 중요</span>
+<b>지향</b><span>미래가치+부부 거주+퇴직 노후</span></div></div>
+<h2>2. 세금 구조 <span class="pill p-ok">유리</span></h2><div class=card>등록임대(10년)로 <b>오피스텔 주택수 미포함</b>→신봉=1주택.
+<ul><li>양도세: <b>1세대1주택 비과세 가능</b>(2년 거주 등)</li><li>취득세: <b>일반 3.3%</b>(중과 회피, 1억+ 절세)</li><li>대출: 주택안정대출 "같은날 매도/매수" 자격</li><li><span class="pill p-warn">제약</span> 명지는 10년 의무 후 매도</li></ul></div>
 <h2>3. 자금 계획</h2><div class=card>
-<table><tr><th>재원</th><th>금액</th><th>조건</th></tr>
-<tr><td>현 거주 매도</td><td class=num>8.0억</td><td>비과세 가정</td></tr>
-<tr><td>회사 주택안정대출</td><td class=num>5.0억</td><td>1.5%(실효 2.3~2.8%)</td></tr>
-<tr><td>신용대출</td><td class=num>2.0억</td><td>5.5% <span class="pill p-warn">검토</span></td></tr>
+<table><tr><th>재원</th><th>금액</th><th>조건</th></tr><tr><td>현 거주 매도</td><td class=num>8.0억</td><td>비과세 가정</td></tr>
+<tr><td>회사 주택안정대출</td><td class=num>5.0억</td><td>1.5%(실효 2.3~2.8%)</td></tr><tr><td>신용대출</td><td class=num>2.0억</td><td>5.5% <span class="pill p-warn">검토</span></td></tr>
 <tr><th>합계/순매수력</th><th class=num>15억/≈14억</th><th>취득세·비용 차감</th></tr></table>
-<div class=warnbox style=margin-top:10px><b>월상환</b> 회사 5억(10년) 449만 + 신용 이자 92만 = <b>월 541만</b>. <b>권고: 8+5=13억으로 가고 신용 최소화</b>(효성해링턴/힐스테이트는 13억 내 충분).</div></div>
-
-<h2>4. 미래가치 3중 호재</h2><div class=card>
-<ul><li><b>반도체 메가클러스터</b>: SK원삼 122조·삼성 이동 360조·기흥 NRD-K · 플랫폼시티(2025착공)</li>
-<li><b>GTX-A 구성역</b>: 개통완료 · 2026 전구간→서울역 20분대 · "넥스트 판교"</li>
-<li><b>용인 플랫폼시티</b>: 보정·마북 자족도시 · 분양 2026하반기~</li></ul>
-<p class=small><span class="pill p-warn">주의</span> 선반영·빨대효과 우려 → 추격 금지, 장기(2026~32) 관점.</p></div>
-
+<div class=warnbox style=margin-top:10px><b>월상환</b> 회사 5억(10년) 449만+신용 이자 92만=<b>월 541만</b>. <b>효성·힐스는 8+5=13억 내</b>(신용 불요). <b>e편한세상(14.45)은 풀스택(15억) 필요</b>.</div></div>
+<h2>4. 미래가치 3중 호재</h2><div class=card><ul><li><b>반도체 클러스터</b>: SK원삼 122조·삼성 이동 360조·기흥 NRD-K·플랫폼시티(2025착공)</li><li><b>GTX-A 구성역</b>: 2026 전구간→서울역 20분대·"넥스트 판교"</li><li><b>플랫폼시티</b>: 보정·마북 자족도시·분양 2026하반기~</li></ul><p class=small><span class="pill p-warn">주의</span> 선반영·빨대효과 우려→추격 금지, 장기 관점.</p></div>
 <h2>5. 추천 3단지 위치 (구성역 1.5km)</h2><div class=card><div id=map></div>
 <div class=leg><span class=dot style="background:#137333"></span>효성해링턴 <span class=dot style="background:#1a73e8"></span>e편한세상 <span class=dot style="background:#b06000"></span>힐스테이트구성 <span class=dot style="background:#c5221f"></span>구성역</div></div>
-
-<h2>6. 최근 실거래가 추세 (84~99㎡ 월평균·14개월)</h2><div class=card><div id=trend></div>
-<p class=small>국토부 실거래 월평균. 효성 완만 상승·힐스 뚜렷 상승·e편한세상 변동 큰 우상향. 단일 거래는 평형/층 편차로 다를 수 있음(호가 아님).</p></div>
-
-<h2>7. 단지별 장단점</h2><div class=card><table>
-<tr><th>단지</th><th>장점 👍</th><th>단점 👎</th></tr><tr><td class=nm>효성해링턴 ~6.5억 (2016)</td><td><ul class=pro><li>현재집(8.15)보다 싸 → 차액 확보·대출 거의 불요</li><li>준신축·구성역 도보·상승세(5.7→6.5)</li><li>월부담 최소</li></ul></td><td><ul class=con><li>신축 대비 상품성 한 단계 아래</li><li>평형·층 편차 큼</li></ul></td></tr><tr><td class=nm>e편한세상 ~11.6억·84㎡ (2024)</td><td><ul class=pro><li>2024 신축·초역세권·플랫폼시티 상업/의료 예정지→노후 최적</li><li>84㎡는 8+5=13억으로 도달</li><li>우상향 강함</li></ul></td><td><ul class=con><li>변동성 큼·고점 선반영 위험</li><li>대형평형 14억+ 부담</li></ul></td></tr><tr><td class=nm>힐스테이트구성 ~9.8억 (2023)</td><td><ul class=pro><li>신축인데 e편한세상보다 저렴</li><li>뚜렷한 상승세(8.3→9.8)·8+5 여유</li></ul></td><td><ul class=con><li>구성역 1.4km 도보 약간 멀어</li><li>역세권 프리미엄 상대 약</li></ul></td></tr></table></div>
-
+<h2>6. 최근 실거래가 추세 (동일치·84~99㎡ 월평균)</h2><div class=card><div id=trend></div>
+<p class=small>국토부 실거래(사용자 키·운영API)·동(洞)까지 일치시킨 정확 매칭. 효성 6.6→8.4·힐스 8.3→9.8 상승, e편한세상 14억대 견조. (호가 아님)</p></div>
+<h2>7. 단지별 장단점</h2><div class=card><table><tr><th>단지</th><th>장점 👍</th><th>단점 👎</th></tr><tr><td class=nm>효성해링턴플레이스 ~8.4억 (마북동·2016)</td><td><ul class=pro><li>현재집(8.15)과 <b>거의 동가</b> → 대출 거의 없이 갈아타기</li><li>준신축·구성역 도보·상승세(6.6→8.4)</li><li>월부담 최소</li></ul></td><td><ul class=con><li>2024 신축 대비 상품성 한 단계 아래</li><li>거래 적어 가격 변동 체크 필요</li></ul></td></tr><tr><td class=nm>e편한세상구성역플랫폼시티 ~14.45억 (마북동·2024)</td><td><ul class=pro><li>2024 신축·초역세권·플랫폼시티→퇴직 노후 최적</li><li>84㎡ 14억대 일관·견조한 우상향</li></ul></td><td><ul class=con><li><b>8+5=13억으론 부족 → 신용 포함 풀스택(15억) 필요</b></li><li>고점·선반영 위험</li></ul></td></tr><tr><td class=nm>힐스테이트구성 ~9.8억 (언남동·2023)</td><td><ul class=pro><li>신축인데 e편한세상보다 5억 저렴·<b>8+5로 충분</b></li><li>뚜렷한 상승세(8.3→9.8)</li></ul></td><td><ul class=con><li>구성역 1.4km 도보 약간 멀어</li></ul></td></tr></table></div>
 <h2>8. 후보 종합 랭킹 <span class=small>(미래45·연식30·가격25)</span></h2><div class=card>
-<table><tr><th>#</th><th>단지</th><th>가격</th><th>건축</th><th>구성역</th><th>병원</th><th>점수</th></tr><tr><td class=num>1</td><td class=nm>e편한세상구성역플랫폼시티</td><td class=num>11.6억</td><td>2024</td><td class=num>0.76km</td><td class=num>4.3km</td><td class=sc>77.1</td></tr><tr><td class=num>2</td><td class=nm>구성역효성해링턴플레이스</td><td class=num>6.5억</td><td>2016</td><td class=num>1.09km</td><td class=num>4.1km</td><td class=sc>72.4</td></tr><tr><td class=num>3</td><td class=nm>힐스테이트구성</td><td class=num>9.8억</td><td>2023</td><td class=num>1.38km</td><td class=num>4.0km</td><td class=sc>72.0</td></tr><tr><td class=num>4</td><td class=nm>연원마을엘지</td><td class=num>8.11억</td><td>1999</td><td class=num>0.4km</td><td class=num>5.0km</td><td class=sc>70.1</td></tr><tr><td class=num>5</td><td class=nm>연원마을금호베스트빌</td><td class=num>8.2억</td><td>2002</td><td class=num>0.66km</td><td class=num>5.1km</td><td class=sc>68.0</td></tr><tr><td class=num>6</td><td class=nm>성호샤인힐즈</td><td class=num>11.0억</td><td>2005</td><td class=num>0.81km</td><td class=num>5.7km</td><td class=sc>65.5</td></tr><tr><td class=num>7</td><td class=nm>상떼빌구성역플랫폼시티</td><td class=num>8.45억</td><td>2000</td><td class=num>0.74km</td><td class=num>5.1km</td><td class=sc>65.2</td></tr><tr><td class=num>8</td><td class=nm>삼거마을삼성래미안1</td><td class=num>12.5억</td><td>2002</td><td class=num>0.75km</td><td class=num>4.4km</td><td class=sc>63.0</td></tr></table>
-<p class=small>가격=추세/실거래, 거리=좌표 직선, 점수=정량(연식·거리·가격)만.</p></div>
-
+<table><tr><th>#</th><th>단지</th><th>가격</th><th>건축</th><th>구성역</th><th>병원</th><th>점수</th></tr><tr><td class=num>1</td><td class=nm>e편한세상구성역플랫폼시티</td><td class=num>14.45억</td><td>2024</td><td class=num>0.76km</td><td class=num>4.3km</td><td class=sc>77.1</td></tr><tr><td class=num>2</td><td class=nm>구성역효성해링턴플레이스</td><td class=num>8.4억</td><td>2016</td><td class=num>1.09km</td><td class=num>4.1km</td><td class=sc>72.4</td></tr><tr><td class=num>3</td><td class=nm>힐스테이트구성</td><td class=num>9.8억</td><td>2023</td><td class=num>1.38km</td><td class=num>4.0km</td><td class=sc>72.0</td></tr><tr><td class=num>4</td><td class=nm>연원마을엘지</td><td class=num>8.11억</td><td>1999</td><td class=num>0.4km</td><td class=num>5.0km</td><td class=sc>70.1</td></tr><tr><td class=num>5</td><td class=nm>연원마을금호베스트빌</td><td class=num>8.2억</td><td>2002</td><td class=num>0.66km</td><td class=num>5.1km</td><td class=sc>68.0</td></tr><tr><td class=num>6</td><td class=nm>성호샤인힐즈</td><td class=num>11.0억</td><td>2005</td><td class=num>0.81km</td><td class=num>5.7km</td><td class=sc>65.5</td></tr><tr><td class=num>7</td><td class=nm>상떼빌구성역플랫폼시티</td><td class=num>8.45억</td><td>2000</td><td class=num>0.74km</td><td class=num>5.1km</td><td class=sc>65.2</td></tr><tr><td class=num>8</td><td class=nm>삼거마을삼성래미안1</td><td class=num>12.5억</td><td>2002</td><td class=num>0.75km</td><td class=num>4.4km</td><td class=sc>63.0</td></tr></table></div>
 <h2>9. 종합 권고 & 체크리스트</h2><div class=card>
-<p><b>① 효성해링턴(~6.5억)</b> 안전·차액확보 · <b>② e편한세상(~11.6)</b> 신축·노후 최적·13억 도달 · <b>③ 힐스테이트(~9.8)</b> 신축 가성비.</p>
-<h3>실행 전 확인</h3><ul>
-<li>☐ 명지 의무임대 잔여 → 신용 2억 브릿지 기간</li><li>☐ 직급 CL(대출한도)·소득·DSR(신용 실행)</li>
-<li>☐ 신봉 거주2년+등록임대 요건(양도세 비과세, 세무사)</li><li>☐ 오피스텔 전용·공시가(취득세 주택수, 세무사)</li>
-<li>☐ 임장: 향·평면·동간·실주차·평지·세대수·플랫폼시티 공정</li></ul></div>
-
-<div class=foot>참고용·투자권유 아님. 가격은 국토부 실거래 월평균(호가와 다름), 거리는 좌표 직선거리. 세금·대출은 세무사·은행 확인 필요. 2026-06-21 기준.</div>
+<p><b>① 효성해링턴(~8.4억)</b> 동가·안전(대출 거의 불요) · <b>② 힐스테이트(~9.8억)</b> 신축 가성비·8+5 충분 · <b>③ e편한세상(~14.45억)</b> 신축·노후 최적이나 풀스택(15억) 필요.</p>
+<h3>실행 전 확인</h3><ul><li>☐ 명지 의무임대 잔여→신용 브릿지</li><li>☐ 직급 CL·소득·DSR</li><li>☐ 신봉 거주2년+등록임대 요건(세무사)</li><li>☐ 오피스텔 전용·공시가(세무사)</li><li>☐ 임장: 향·평면·동간·실주차·평지·세대수</li></ul></div>
+<div class=foot>참고용·투자권유 아님. 가격은 국토부 실거래 월평균(호가와 다름), 거리는 좌표 직선거리. 2026-06-21 기준. ※ 가격은 단지명+동(洞) 정확매칭으로 재검증함.</div>
 </div>
 <script>
 var m=L.map('map').setView([37.298,127.114],14);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© OpenStreetMap'}).addTo(m);
 function pin(la,ln,c,t){L.circleMarker([la,ln],{radius:9,color:'#fff',weight:2,fillColor:c,fillOpacity:1}).addTo(m).bindPopup('<b>'+t+'</b>');}
-pin(37.29702,127.11586,'#137333','효성해링턴 ~6.5억');
-pin(37.29605,127.11146,'#1a73e8','e편한세상 ~11.6억');
-pin(37.29782,127.11931,'#b06000','힐스테이트구성 ~9.8억');
+pin(37.2970219,127.1158633,'#137333','효성해링턴 ~8.4억');
+pin(37.2960487,127.1114561,'#1a73e8','e편한세상 ~14.45억');
+pin(37.2978187,127.1193102,'#b06000','힐스테이트구성 ~9.8억');
 pin(37.2992,127.1038,'#c5221f','구성역 GTX-A·수인분당');
 Plotly.newPlot('trend',[
-{x:['25.05', '25.06', '25.07', '25.08', '25.09', '25.10', '25.11', '25.12', '26.01', '26.02', '26.03', '26.04', '26.05', '26.06'],y:[6.04, 5.89, 5.99, 5.86, 5.73, 5.86, 5.97, 6.06, 6.32, 6.41, 6.05, 6.13, 6.38, 6.48],name:'효성해링턴',mode:'lines+markers',line:{color:'#137333'}},
-{x:['25.06', '25.07', '25.08', '25.11', '25.12', '26.01', '26.02', '26.03', '26.04', '26.05', '26.06'],y:[5.15, 8.9, 5.65, 11.5, 5.55, 9.24, 10.31, 7.34, 10.98, 11.17, 11.63],name:'e편한세상',mode:'lines+markers',line:{color:'#1a73e8'}},
+{x:['25.05', '26.01', '26.02', '26.05'],y:[6.63, 6.96, 7.02, 8.4],name:'효성해링턴',mode:'lines+markers',line:{color:'#137333'}},
+{x:['25.07', '25.11', '26.01', '26.02', '26.03', '26.04', '26.05', '26.06'],y:[12.6, 11.5, 14.59, 14.85, 14.3, 13.67, 14.85, 14.45],name:'e편한세상',mode:'lines+markers',line:{color:'#1a73e8'}},
 {x:['25.10', '25.12', '26.01', '26.02', '26.03', '26.04', '26.05', '26.06'],y:[8.28, 8.32, 8.43, 8.47, 8.42, 9.45, 9.5, 9.8],name:'힐스테이트구성',mode:'lines+markers',line:{color:'#b06000'}}],
 {margin:{l:40,r:14,t:8,b:30},yaxis:{ticksuffix:'억'},legend:{orientation:'h',y:-0.18},font:{family:'Malgun Gothic',size:11}},{displayModeBar:false,responsive:true});
 </script></body></html>

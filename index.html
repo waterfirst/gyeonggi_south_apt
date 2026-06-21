@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=1200">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>실리콘 네스트 — 경기 남부 아파트 실거래가</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&family=Black+Han+Sans&family=Nanum+Myeongjo:wght@400;700&display=swap" rel="stylesheet">
@@ -171,6 +171,48 @@
     #rec-modal *{visibility:visible;}
     #rec-print{box-shadow:none;max-width:100%;}
     .rec-foot{display:none!important;}
+  }
+  /* ── 모바일 폰트 확대 (핸드폰 가독성) ── */
+  @media(max-width:640px){
+    body{font-size:16px;}
+    header{padding:12px 15px;}
+    header h1{font-size:20px;line-height:1.25;}
+    header h1 span{display:block;font-size:13px;margin-left:0;margin-top:3px;}
+    .hdr-right{font-size:13px;width:100%;}
+    .hdr-btn{font-size:14.5px;padding:10px 14px;}
+    .map-card h2,.filter-card h2,.ch-card h3{font-size:15px;}
+    #leaflet-map{height:360px;}
+    .legend{font-size:13px;}
+    .gu-placeholder{font-size:14px;}
+    .gu-stat .v{font-size:23px;}.gu-stat .l{font-size:13px;}
+    .sum-cards{grid-template-columns:repeat(2,1fr);gap:9px;}
+    .sum-card .v{font-size:24px;}.sum-card .l{font-size:13px;}
+    .fg-grid{grid-template-columns:1fr 1fr;}
+    .fg label{font-size:13px;}
+    .fg select,.fg input[type=text]{font-size:15px;padding:10px 11px;}
+    .rv{font-size:13px;min-width:42px;}
+    .btn-reset{font-size:14px;padding:10px 14px;}
+    .tbl-hdr h2{font-size:16px;}.tbl-cnt{font-size:13px;}
+    .srch{font-size:15px;width:100%;}
+    th{font-size:13px;padding:11px 10px;}
+    td{font-size:14.5px;padding:11px 10px;}
+    .pc{font-size:15px;}
+    .htag{font-size:11.5px;}
+    .pg button{font-size:14.5px;padding:8px 13px;}
+    .mo-box{max-height:88vh;}
+    .mo-hdr h3{font-size:17px;}
+    .mo-body{font-size:15px;}
+    .mo-body th{font-size:13.5px;}
+    .naver-btn{font-size:15px;padding:11px 18px;}
+    /* 추천 모달 */
+    #rec-print{margin:0 10px;}
+    .rec-hd h2{font-size:20px;}
+    .rec-cond{font-size:13.5px;}
+    .rec-name{font-size:17px;}
+    .rec-name .gu{font-size:13px;}
+    .rec-kv{font-size:13.5px;}
+    .rec-why{font-size:13.5px;}
+    .rec-foot button{font-size:15px;padding:12px 18px;}
   }
   </style>
 </head>

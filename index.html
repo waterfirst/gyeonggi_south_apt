@@ -196,8 +196,8 @@
       <h2>📍 경기 남부 시군구별 거래 현황 <small style="font-weight:400">— 구 클릭 시 필터</small></h2>
       <div id="leaflet-map"></div>
       <div class="legend">
-        <div class="leg-item"><div class="leg-dot" style="background:#b3e5fc;border:1px solid #0288d1"></div>한강 인근</div>
-        <div class="leg-item"><div class="leg-dot" style="background:#c8e6c9;border:1px solid #388e3c"></div>기타</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#b3e5fc;border:1px solid #0288d1"></div>반도체 클러스터</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#c8e6c9;border:1px solid #388e3c"></div>기타 경기남부</div>
         <div class="leg-item">거래량: <span class="grad-bar" style="background:linear-gradient(to right,#e3f2fd,#0d47a1)"></span>많음</div>
       </div>
     </div>
@@ -209,7 +209,7 @@
     <div style="padding:10px 14px;font-size:10px;color:#9e9e9e;line-height:1.7;background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);">
       <strong style="color:#bdbdbd;font-size:10px;">📌 데이터 출처</strong> 국토교통부 아파트 매매 실거래가 API (공공데이터포털) — 실제 신고 계약만 포함, 추정·호가 제외<br>
       <strong style="color:#bdbdbd;font-size:10px;">🔍 필터</strong> 경기 남부 31개 시군구 / 거래금액 20억 이하 / 전용면적 84㎡ 이상 / 최근 12개월<br>
-      <strong style="color:#bdbdbd;font-size:10px;">🏞️ 한강 인근</strong> 마포·용산·영등포·성동·광진·동작·강동·강남·서초·송파구<br>
+      <strong style="color:#bdbdbd;font-size:10px;">🔧 반도체 클러스터</strong> 용인(처인·기흥·수지)·수원 영통·화성·성남 분당·평택<br>
       <strong style="color:#bdbdbd;font-size:10px;">🔄 업데이트</strong> GitHub Actions 매일 오전 9시(KST) 자동 갱신 — 국토부 신고 의무기한(30일)으로 1~4주 지연 가능<br>
       <span style="color:#c0c0c0;">⚠️ 개인 투자 참고용이며 실제 매수 결정 전 전문가 확인을 권장합니다.</span>
     </div>
@@ -233,7 +233,7 @@
         <div class="fg"><label>최소 거래가</label><div class="rr"><input type="range" id="s-min-p" min="5" max="25" step="1" value="10"><span class="rv" id="v-min">10억</span></div></div>
         <div class="fg"><label>최소 전용면적</label><div class="rr"><input type="range" id="s-area" min="84" max="200" step="1" value="84"><span class="rv" id="v-area">84㎡~</span></div></div>
         <div class="fg"><label>건축연도 이후</label><select id="f-year"><option value="">전체</option><option value="2010">2010년~</option><option value="2015">2015년~</option><option value="2018">2018년~</option><option value="2020">2020년~</option></select></div>
-        <div class="fg"><label>&nbsp;</label><div class="tog-row"><label class="tog"><input type="checkbox" id="t-hangang"><span class="sl"></span></label><span style="font-size:12px;font-weight:600">한강 인근만</span></div></div>
+        <div class="fg"><label>&nbsp;</label><div class="tog-row"><label class="tog"><input type="checkbox" id="t-hangang"><span class="sl"></span></label><span style="font-size:12px;font-weight:600">반도체 클러스터만</span></div></div>
         <div class="fg" style="display:flex;flex-direction:column;justify-content:flex-end;"><input type="text" class="srch" id="f-search" placeholder="단지명 검색..." style="width:100%"></div>
         <div class="fg" style="display:flex;flex-direction:column;justify-content:flex-end;"><button class="btn-reset" id="btn-reset">초기화</button></div>
       </div>
@@ -283,7 +283,7 @@
 const DATA_URL = './data/transactions.json';
 const GEO_URL  = './data/gyeonggi_south.geojson';
 const PS = 20;
-const HG = new Set(['마포구','용산구','영등포구','성동구','광진구','동작구','강동구','강남구','서초구','송파구']);
+const HG = new Set(['용인시 처인구','용인시 기흥구','용인시 수지구','수원시 영통구','화성시','성남시 분당구','평택시']);
 
 let allData=null, geojsonData=null, filtered=[], page=1;
 let sortK='거래금액', sortAsc=false, selGu=null;
@@ -309,7 +309,7 @@ async function init(){
 // ── Leaflet 지도 ──
 function initMap(){
   leafletMap = L.map('leaflet-map', {
-    center:[37.30, 127.05], zoom:10,
+    center:[37.24, 127.08], zoom:10,
     zoomControl:true, scrollWheelZoom:true
   });
 
@@ -392,7 +392,7 @@ function showGuInfo(name){
   const s = allData.district_stats.find(x=>x.구===name);
   if(!s) return;
   document.getElementById('gu-info').innerHTML=`
-    <h3 style="font-size:15px;font-weight:700;margin-bottom:8px">${name} ${HG.has(name)?'<span style="font-size:11px;color:#0288d1;font-weight:400">한강 인근</span>':''}</h3>
+    <h3 style="font-size:15px;font-weight:700;margin-bottom:8px">${name} ${HG.has(name)?'<span style="font-size:11px;color:#0288d1;font-weight:400">반도체</span>':''}</h3>
     <div class="gu-stats">
       <div class="gu-stat"><div class="v">${s.거래수}</div><div class="l">거래건수</div></div>
       <div class="gu-stat"><div class="v">${s.평균가_억}억</div><div class="l">평균 거래가</div></div>
@@ -478,7 +478,7 @@ function renderTable(){
   const tb=document.getElementById('tbody'); tb.innerHTML='';
   filtered.slice((page-1)*PS, page*PS).forEach(t=>{
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td><strong>${t.단지명}</strong>${t.한강인근?' <span class="htag">한강</span>':''}</td><td>${t.구}</td><td>${t.전용면적}㎡</td><td>${t.층}층</td><td>${t.건축연도}년</td><td class="pc">${t.거래금액_억}억</td><td>${t.거래일}</td>`;
+    tr.innerHTML=`<td><strong>${t.단지명}</strong>${t.한강인근?' <span class="htag">반도체</span>':''}</td><td>${t.구}</td><td>${t.전용면적}㎡</td><td>${t.층}층</td><td>${t.건축연도}년</td><td class="pc">${t.거래금액_억}억</td><td>${t.거래일}</td>`;
     tr.addEventListener('click',()=>openModal(t));
     tb.appendChild(tr);
   });

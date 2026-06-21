@@ -122,7 +122,7 @@ function renderTable() {
     const tr = document.createElement('tr');
     tr.style.cursor = 'pointer';
     tr.innerHTML = `
-      <td><strong>${t.단지명}</strong>${t.한강인근 ? ' <span class="hangang-tag">한강</span>':''}
+      <td><strong>${t.단지명}</strong>${t.한강인근 ? ' <span class="hangang-tag">반도체</span>':''}
       </td>
       <td>${t.구}</td>
       <td>${t.법정동}</td>
@@ -171,7 +171,7 @@ function renderDistrictCards() {
     const card = document.createElement('div');
     card.className = 'district-card' + (s.한강인근 ? ' hangang' : '');
     card.innerHTML = `
-      <div class="gu-name">${s.구} ${s.한강인근 ? '<span class="hangang-label">한강</span>':''}</div>
+      <div class="gu-name">${s.구} ${s.한강인근 ? '<span class="hangang-label">반도체</span>':''}</div>
       <div class="gu-count">${s.거래수}건</div>
       <div class="gu-avg">평균 ${s.평균가_억}억</div>
       <div class="gu-range">${s.최저가_억}~${s.최고가_억}억</div>
@@ -221,7 +221,7 @@ function renderBarChart() {
         label: '평균 거래가 (억)',
         data: sorted.map(s => s.avg),
         backgroundColor: sorted.map(s => {
-          const hangangSet = new Set(['마포구','용산구','영등포구','성동구','광진구','동작구','강동구','강남구','서초구','송파구']);
+          const hangangSet = new Set(['용인시 처인구','용인시 기흥구','용인시 수지구','수원시 영통구','화성시','성남시 분당구','평택시']);
           return hangangSet.has(s.gu) ? '#0097a7cc' : '#1a73e8cc';
         }),
         borderRadius: 4,

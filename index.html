@@ -292,7 +292,8 @@ async function init(){
     fetch(GEO_URL+'?t='+Date.now())
   ]);
   allData = await dr.json();
-  geojsonData = await gr.json();
+  try { geojsonData = gr.ok ? await gr.json() : {type:'FeatureCollection',features:[]}; }
+  catch(e){ geojsonData = {type:'FeatureCollection',features:[]}; console.warn('geojson 없음 — 지도 경계 생략'); }
 
   document.getElementById('updated-at').textContent = '업데이트: '+allData.updated_at;
   if(allData.note) document.getElementById('sample-badge').style.display='inline';

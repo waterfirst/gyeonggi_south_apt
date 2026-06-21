@@ -303,6 +303,12 @@ async function init(){
   try{ const c=await caches.open('apt-data'); for(const k of await c.keys()){ if(!k.url.includes('v='+encodeURIComponent(ver))) await c.delete(k); } }catch(e){}
   const [dr, gr] = await Promise.all([ cachedJson(DATA_URL, ver), cachedJson(GEO_URL, ver) ]);
   allData = await dr.json();
+  // 자가복구: 캐시가 깨졌거나 데이터 비면 캐시 비우고 신선 재다운
+  if(!allData || !Array.isArray(allData.transactions) || allData.transactions.length===0){
+    try{ await caches.delete('apt-data'); }catch(e){}
+    const dr2 = await fetch(DATA_URL+'?fresh='+Date.now());
+    allData = await dr2.json();
+  }
   try { geojsonData = (gr && gr.ok) ? await gr.json() : {type:'FeatureCollection',features:[]}; }
   catch(e){ geojsonData = {type:'FeatureCollection',features:[]}; console.warn('geojson 없음'); }
 

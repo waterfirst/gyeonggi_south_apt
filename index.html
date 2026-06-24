@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>실리콘 네스트 — 경기 남부 아파트 실거래가</title>
+  <title>경기남부 아파트 실거래가</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&family=Black+Han+Sans&family=Nanum+Myeongjo:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -269,7 +269,7 @@
       </g>
     </svg>
   </div>
-  <div class="sp-title">실리콘 <b>네스트</b></div>
+  <div class="sp-title">경기남부 <b>아파트</b></div>
   <div class="sp-tag">SEMICON BELT · REAL ASSET</div>
   <div class="sp-sub">반도체 벨트 위, 데이터로 고른 보금자리</div>
   <div class="sp-motto">// <span>세는 건 코드,</span> 판단은 사람</div>
@@ -279,7 +279,7 @@
 
 <header>
   <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-    <h1>🏙️ 실리콘 네스트 <span>경기 남부 아파트 실거래가 · 20억 이하 · 84㎡ 이상</span></h1>
+    <h1>🏙️ 경기남부 아파트 실거래가 <span>경기 남부 아파트 실거래가 · 20억 이하 · 84㎡ 이상</span></h1>
     <button id="btn-rec" class="hdr-btn" style="margin-left:auto">✨ 맞춤 아파트 추천 5</button>
     <a href="./analysis.html" class="hdr-btn admin">🧭 내 갈아타기 분석 →</a>
   </div>
@@ -776,7 +776,7 @@ function buildRecommendations(){
   const maxP = document.getElementById('s-max-p').value, minP = document.getElementById('s-min-p').value;
   const minA = document.getElementById('s-area').value, yr = document.getElementById('f-year').value;
   const hOnly = document.getElementById('t-hangang').checked;
-  document.getElementById('rec-date').textContent = '생성일 '+new Date().toLocaleDateString('ko-KR')+' · 실리콘 네스트 · 경기남부 실거래 기반';
+  document.getElementById('rec-date').textContent = '생성일 '+new Date().toLocaleDateString('ko-KR')+' · 경기남부 아파트 실거래가 · 실거래 기반';
   document.getElementById('rec-cond').innerHTML =
     `📍 지역 <b>${gu}</b> · 💰 가격 <b>${minP}~${maxP}억</b> · 📐 전용 <b>${minA}㎡ 이상</b>`+
     (yr?` · 🏗️ <b>${yr}년 이후</b>`:'')+(hOnly?` · <b>반도체 클러스터만</b>`:'')+

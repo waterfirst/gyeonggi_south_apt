@@ -37,7 +37,7 @@
 `scripts/fetch_shops.py`의 `CENTERS`(상권 중심 좌표 + 반경) 목록을 수정하면 됩니다. 반경 조회라 좌표만 있으면 되고, 원하는 상권을 자유롭게 추가하세요.
 
 ### 관련 파일
-- `shops.html` — 지도 UI(클러스터링·업종필터·검색·공실 강조)
+- `shops.html` — 지도 UI(클러스터링·업종필터·검색·공실 강조·**지역별 공실 밀집도 그라데이션**: 공실이 많은 지역일수록 초록→주황→빨강으로 진하게 표시)
 - `scripts/fetch_shops.py` — 실데이터 수집 + 공실 차분
 - `scripts/gen_sample_shops.py` — 데모용 샘플 생성(네트워크 불필요)
 - `data/shops.json`(지도용) · `data/shops_snapshot.json`·`data/vacant.json`(차분 상태)

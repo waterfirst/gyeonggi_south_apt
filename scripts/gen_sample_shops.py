@@ -49,11 +49,17 @@ def jitter(v, meters):
     return v + random.uniform(-meters, meters) / 111000.0
 
 
+BLD_USES = ["제2종근린생활시설", "제1종근린생활시설", "판매시설", "업무시설"]
+
+
 def make_shop(i, area):
     name_area, clon, clat = area
     L, M, S = random.choice(INDS)
     lon = round(jitter(clon, 700), 6)
     lat = round(jitter(clat, 700), 6)
+    grnd = random.randint(3, 15)
+    ugrnd = random.randint(0, 3)
+    tot = round(random.uniform(300, 6000), 1)
     return {
         "id": f"SAMPLE{i:05d}",
         "name": f"{random.choice(NAMES)}{S[:2]}",
@@ -66,6 +72,13 @@ def make_shop(i, area):
         "addr_road": "",
         "bld": "",
         "lon": lon, "lat": lat,
+        # 건축물대장(표제부) 결합 예시 — 실데이터에선 getBrTitleInfo로 채움
+        "bld_use": random.choice(BLD_USES),
+        "bld_totArea": tot,
+        "bld_pyeong": round(tot / 3.3058, 1),
+        "bld_grndFlr": str(grnd),
+        "bld_ugrndFlr": str(ugrnd),
+        "bld_useApr": f"{random.randint(1994, 2021)}-{random.randint(1,12):02d}-{random.randint(1,28):02d}",
     }
 
 
@@ -114,7 +127,28 @@ def main():
     os.makedirs(DATA_DIR, exist_ok=True)
     with open(os.path.join(DATA_DIR, "shops.json"), "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, separators=(",", ":"))
+
+    # 시계열(지역별 공실 추이) 샘플 — 최근 6개월, 지역별로 증가 추세를 만들어 둠
+    final = {}
+    for v in vacant:
+        rk = v["adong"]
+        final[rk] = final.get(rk, 0) + 1
+    months = ["2026-03-01", "2026-04-01", "2026-05-01", "2026-06-01", "2026-07-01", "2026-08-01"]
+    series = []
+    for mi, date in enumerate(months):
+        frac = (mi + 1) / len(months)  # 과거일수록 공실 적게
+        regions = {}
+        for rk, endc in final.items():
+            base = max(0, round(endc * frac + random.uniform(-0.6, 0.6)))
+            if mi == len(months) - 1:
+                base = endc  # 마지막 지점은 현재값과 일치
+            regions[rk] = base
+        series.append({"date": date, "total": sum(regions.values()), "regions": regions})
+    with open(os.path.join(DATA_DIR, "vacant_history.json"), "w", encoding="utf-8") as f:
+        json.dump({"series": series}, f, ensure_ascii=False, separators=(",", ":"))
+
     print(f"샘플 생성: 영업중 {len(operating)}건 / 공실추정 {len(vacant)}건 → data/shops.json")
+    print(f"시계열 샘플: {len(series)}개 시점 × {len(final)}개 지역 → data/vacant_history.json")
 
 
 if __name__ == "__main__":

@@ -76,6 +76,23 @@
     .marker-va{background:var(--vacant);width:15px;height:15px;border-radius:50%;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);}
     .marker-op{background:var(--op);width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.35);}
 
+    /* 시계열 공실 추이 모달 */
+    .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;display:none;align-items:center;justify-content:center;padding:16px;}
+    .modal-bg.on{display:flex;}
+    .modal{background:var(--card);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.3);width:min(860px,96vw);max-height:92vh;overflow:auto;padding:16px 18px;}
+    .modal .mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+    .modal .mh h2{font-size:16px;font-family:'Nanum Myeongjo',serif;}
+    .modal .close{border:none;background:#edf2f7;border-radius:8px;width:30px;height:30px;font-size:16px;cursor:pointer;}
+    .modal .sub{font-size:11.5px;color:var(--muted);margin-bottom:10px;}
+    .chart svg{width:100%;height:auto;display:block;}
+    .chart .axis{stroke:#cbd5e0;stroke-width:1;}
+    .chart .grid{stroke:#edf2f7;stroke-width:1;}
+    .chart .lbl{fill:var(--muted);font-size:10px;}
+    .chart-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+    .lg{display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;padding:3px 8px;border:1px solid var(--border);border-radius:14px;user-select:none;}
+    .lg.off{opacity:.4;}
+    .lg .sw{width:11px;height:11px;border-radius:3px;flex:none;}
+
     .panel-toggle{display:none;}
     @media(max-width:760px){
       .wrap{flex-direction:column;}
@@ -89,6 +106,7 @@
 <header>
   <h1>🏪 서울·경기 빈 상가 맵 <span>소상공인 상가정보 · 공실 추정</span></h1>
   <a href="./index.html" class="hdr-btn">🏙️ 아파트 실거래가</a>
+  <button id="btn-trend" class="hdr-btn" style="display:none">📈 공실 추이</button>
   <div class="hdr-right">
     <span id="sample-badge" class="badge" style="display:none">샘플 데이터</span>
     <span id="updated">로딩 중…</span>
@@ -134,6 +152,18 @@
   <div id="map"></div>
 </div>
 
+<div class="modal-bg" id="trend-modal">
+  <div class="modal">
+    <div class="mh">
+      <h2>📈 지역별 공실 추이 (시계열)</h2>
+      <button class="close" id="trend-close">✕</button>
+    </div>
+    <div class="sub" id="trend-sub">스냅샷 조회 시점마다 지역별 공실 추정 수를 누적한 그래프입니다.</div>
+    <div class="chart" id="chart"></div>
+    <div class="chart-legend" id="chart-legend"></div>
+  </div>
+</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
@@ -166,15 +196,26 @@ function popupHtml(s, vacant){
   const vacRow = vacant
     ? `<div><span class="k">⏳ 공실 감지:</span> <span class="hl">약 ${s.months_vacant||0}개월</span> <span class="k">(${esc(s.first_missing||'')} ~)</span></div>`
     : '';
+  // 건축물대장(표제부) 결합 정보 — 있을 때만 표시
+  const hasBld = s.bld_totArea || s.bld_use || s.bld_useApr;
+  const flrTxt = [s.bld_grndFlr?`지상${esc(s.bld_grndFlr)}`:'', (s.bld_ugrndFlr&&s.bld_ugrndFlr!=='0')?`지하${esc(s.bld_ugrndFlr)}`:''].filter(Boolean).join('/');
+  const bldRows = hasBld ? `
+      <div><span class="k">🏗️ 건물용도:</span> ${esc(s.bld_use||'-')}${flrTxt?` · ${flrTxt}층`:''}</div>
+      ${s.bld_totArea?`<div><span class="k">📐 건물 연면적:</span> ${s.bld_pyeong?`${s.bld_pyeong}평 `:''}(${s.bld_totArea}㎡)</div>`:''}
+      ${s.bld_useApr?`<div><span class="k">🗓️ 사용승인:</span> ${esc(s.bld_useApr)}</div>`:''}` : '';
+  const naTxt = hasBld
+    ? '건물 정보는 건축물대장(표제부) 기준입니다. 개별 점포 전용면적·임대료·연락처는 매물 링크로 확인하세요.'
+    : '평수·임대료·보증금·연락처는 공공데이터에 없습니다 → 아래에서 매물 확인';
   return `<div class="pop">
     <div class="top"><h4>${esc(s.name||'(상호미상)')}</h4>${st}</div>
     <div class="cat">${esc(cat(s))||'업종미상'}</div>
     <div class="rows">
       <div><span class="k">📍 주소:</span> ${esc(a)||'-'}</div>
       <div><span class="k">🏢 층:</span> ${esc(s.flr||'-')}${s.bld?` · ${esc(s.bld)}`:''}</div>
+      ${bldRows}
       ${vacRow}
     </div>
-    <div class="na">평수·임대료·보증금·연락처는 공공데이터에 없습니다 → 아래에서 매물 확인</div>
+    <div class="na">${naTxt}</div>
     <div class="links">
       <a class="" target="_blank" rel="noopener" href="${naverUrl(a||s.name)}">네이버 매물</a>
       <a class="k" target="_blank" rel="noopener" href="${kakaoUrl(a||s.name)}">카카오맵</a>
@@ -281,6 +322,72 @@ fetch('./data/shops.json?_='+Date.now())
     document.getElementById('updated').textContent='데이터 로드 실패';
     document.getElementById('note').innerHTML='<b>데이터를 불러오지 못했습니다.</b><br>data/shops.json 이 있는지, GitHub Pages 경로가 맞는지 확인하세요. 콘솔: '+esc(String(e));
   });
+
+// ── 시계열 공실 추이 차트 (의존성 없는 SVG) ─────────────────────
+const CH_COLORS=['#e53e3e','#3182ce','#38a169','#d69e2e','#805ad5','#dd6b20','#319795','#d53f8c','#718096','#2b6cb0'];
+let HIST=null, chRegions=[], chHidden=new Set();
+
+function buildTrend(hist){
+  const series=(hist&&hist.series||[]).slice().sort((a,b)=>a.date<b.date?-1:1);
+  if(series.length<1) return false;
+  // 지역 선정: 피크 공실 수 상위 10개
+  const peak={};
+  for(const p of series) for(const [k,v] of Object.entries(p.regions||{})) peak[k]=Math.max(peak[k]||0,v);
+  chRegions=Object.keys(peak).sort((a,b)=>peak[b]-peak[a]).slice(0,10);
+  HIST=series;
+  renderChart();
+  // 범례
+  const lg=document.getElementById('chart-legend'); lg.innerHTML='';
+  chRegions.forEach((name,i)=>{
+    const latest=(series[series.length-1].regions||{})[name]||0;
+    const el=document.createElement('span');
+    el.className='lg'+(chHidden.has(i)?' off':'');
+    el.innerHTML=`<span class="sw" style="background:${CH_COLORS[i%CH_COLORS.length]}"></span>${esc(name)} <b>${latest}</b>`;
+    el.onclick=()=>{ if(chHidden.has(i))chHidden.delete(i); else chHidden.add(i); el.classList.toggle('off'); renderChart(); };
+    lg.appendChild(el);
+  });
+  return true;
+}
+
+function renderChart(){
+  const S=HIST; if(!S) return;
+  const W=760,H=340,L=42,R=14,T=16,B=42;
+  const pw=W-L-R, ph=H-T-B, n=S.length;
+  let maxY=1;
+  chRegions.forEach((name,i)=>{ if(chHidden.has(i))return;
+    for(const p of S) maxY=Math.max(maxY,(p.regions||{})[name]||0); });
+  const x=i=> n===1? L+pw/2 : L+pw*i/(n-1);
+  const y=v=> T+ph*(1-v/maxY);
+  let g='';
+  // y 그리드 + 라벨 (5단계)
+  for(let s=0;s<=4;s++){ const val=Math.round(maxY*s/4); const yy=y(val);
+    g+=`<line class="grid" x1="${L}" y1="${yy.toFixed(1)}" x2="${W-R}" y2="${yy.toFixed(1)}"/>`;
+    g+=`<text class="lbl" x="${L-6}" y="${(yy+3).toFixed(1)}" text-anchor="end">${val}</text>`; }
+  // x 라벨
+  const step=Math.max(1,Math.ceil(n/8));
+  for(let i=0;i<n;i+=step){ g+=`<text class="lbl" x="${x(i).toFixed(1)}" y="${H-B+16}" text-anchor="middle">${esc(S[i].date.slice(5))}</text>`; }
+  // 축
+  g+=`<line class="axis" x1="${L}" y1="${T}" x2="${L}" y2="${H-B}"/><line class="axis" x1="${L}" y1="${H-B}" x2="${W-R}" y2="${H-B}"/>`;
+  // 지역별 라인 + 점
+  chRegions.forEach((name,i)=>{ if(chHidden.has(i))return;
+    const col=CH_COLORS[i%CH_COLORS.length];
+    const pts=S.map((p,idx)=>`${x(idx).toFixed(1)},${y((p.regions||{})[name]||0).toFixed(1)}`).join(' ');
+    g+=`<polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round"/>`;
+    S.forEach((p,idx)=>{ g+=`<circle cx="${x(idx).toFixed(1)}" cy="${y((p.regions||{})[name]||0).toFixed(1)}" r="2.6" fill="${col}"/>`; });
+  });
+  document.getElementById('chart').innerHTML=
+    `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="지역별 공실 추이">${g}</svg>`;
+}
+
+fetch('./data/vacant_history.json?_='+Date.now())
+  .then(r=>r.ok?r.json():null).then(h=>{
+    if(buildTrend(h)) document.getElementById('btn-trend').style.display='inline-block';
+  }).catch(()=>{});
+
+const modal=document.getElementById('trend-modal');
+document.getElementById('btn-trend').onclick=()=>modal.classList.add('on');
+document.getElementById('trend-close').onclick=()=>modal.classList.remove('on');
+modal.addEventListener('click',e=>{ if(e.target===modal) modal.classList.remove('on'); });
 
 document.getElementById('search').addEventListener('input',e=>{query=e.target.value.trim().toLowerCase();render();});
 document.getElementById('t-op').addEventListener('change',render);

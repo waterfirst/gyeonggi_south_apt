@@ -48,6 +48,14 @@ API_KEY = urllib.parse.unquote(_RAW_KEY) if "%" in _RAW_KEY else _RAW_KEY
 # 이미지의 End Point: https://apis.data.go.kr/B553077/api/open/sdsc2
 BASE = "https://apis.data.go.kr/B553077/api/open/sdsc2"
 
+# 국토교통부 건축HUB 건축물대장 (표제부) — 상가에 실제 건물정보(주용도/연면적/층수/사용승인일) 결합
+# data.go.kr 일반 인증키는 계정당 1개 공용이라 기본은 SEMAS_API_KEY 재사용, 별도 지정도 가능.
+BLD_BASE = "https://apis.data.go.kr/1613000/BldRgstHubService/getBrTitleInfo"
+_BLD_RAW = os.environ.get("MOLIT_BLD_API_KEY", "").strip() or _RAW_KEY
+BLD_API_KEY = urllib.parse.unquote(_BLD_RAW) if "%" in _BLD_RAW else _BLD_RAW
+ENABLE_BLDG = os.environ.get("ENABLE_BLDG", "1") != "0"   # 건물정보 결합 on/off
+MAX_BLDG_LOOKUPS = int(os.environ.get("MAX_BLDG_LOOKUPS", "800"))  # 실행당 신규 조회 상한
+
 # ── 조회 대상: 서울/경기 주요 상권 중심점 (반경 조회) ─────────────────────
 #   반경(radius) 조회는 좌표만 있으면 되고, 결과 크기가 자연스럽게 제한되어
 #   지도 서비스에 가장 적합합니다. (행정동 코드가 틀릴 위험도 없음)
@@ -76,6 +84,8 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 SHOPS_JSON = os.path.join(DATA_DIR, "shops.json")           # 지도가 읽는 파일
 SNAPSHOT_JSON = os.path.join(DATA_DIR, "shops_snapshot.json")  # 차분용 이전 스냅샷
 VACANT_JSON = os.path.join(DATA_DIR, "vacant.json")         # 공실 후보 누적 상태
+BLDG_CACHE_JSON = os.path.join(DATA_DIR, "bldg_cache.json")  # 건축물대장 조회 캐시
+VACANT_HISTORY_JSON = os.path.join(DATA_DIR, "vacant_history.json")  # 시계열(지역별 공실 추이)
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (compatible; vacant-shop-map/1.0)",
@@ -112,6 +122,11 @@ def _norm_item(it):
         "addr_jibun": (it.get("lnoAdr") or "").strip(),  # 지번주소
         "addr_road": (it.get("rdnmAdr") or "").strip(),  # 도로명주소
         "bld": (it.get("bldNm") or "").strip(),
+        # 건축물대장 매칭용 (법정동코드 10자리, 지번 본번/부번, 대지구분)
+        "ldongCd": (it.get("ldongCd") or "").strip(),
+        "bun": (it.get("lnoMnno") or "").strip(),
+        "ji": (it.get("lnoSlno") or "").strip(),
+        "plotNm": (it.get("plotSctNm") or "").strip(),   # 대지/산
         "lon": round(lon, 6),
         "lat": round(lat, 6),
     }
@@ -168,6 +183,112 @@ def fetch_radius(cx, cy, radius):
     return out
 
 
+def _bldg_key(shop):
+    """상가 → 건축물대장 조회키 (sigunguCd, bjdongCd, platGbCd, bun, ji). 불가하면 None."""
+    ld = (shop.get("ldongCd") or "").strip()
+    bun = (shop.get("bun") or "").strip()
+    if len(ld) < 10 or not bun:
+        return None
+    sigungu = ld[:5]
+    bjdong = ld[5:10]
+    plat_gb = "1" if "산" in (shop.get("plotNm") or "") else "0"
+    ji = (shop.get("ji") or "0").strip() or "0"
+    try:
+        bun4 = f"{int(bun):04d}"
+        ji4 = f"{int(ji):04d}"
+    except ValueError:
+        return None
+    return (sigungu, bjdong, plat_gb, bun4, ji4)
+
+
+def fetch_bldg_title(key):
+    """getBrTitleInfo 호출 → 대표(연면적 최대) 건물 정보. 없으면 {'found':False}."""
+    sigungu, bjdong, plat_gb, bun, ji = key
+    params = {
+        "serviceKey": BLD_API_KEY,
+        "sigunguCd": sigungu, "bjdongCd": bjdong, "platGbCd": plat_gb,
+        "bun": bun, "ji": ji,
+        "numOfRows": 30, "pageNo": 1, "_type": "json",
+    }
+    try:
+        resp = requests.get(BLD_BASE, params=params, headers=HEADERS, timeout=30)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:
+        print(f"    ! 건축물대장 조회 실패 {key}: {e}")
+        return None  # None = 실패(캐시하지 않고 다음 실행에 재시도)
+
+    # 국토부 1613000 계열은 response/header/body 봉투 사용
+    body = ((data or {}).get("response", {}) or {}).get("body", {}) or {}
+    items = (body.get("items") or {})
+    item = items.get("item") if isinstance(items, dict) else items
+    if item is None:
+        return {"found": False}
+    if isinstance(item, dict):
+        item = [item]
+
+    best = None
+    for it in item:
+        ta = _to_float(it.get("totArea")) or 0.0
+        if best is None or ta > best[0]:
+            best = (ta, it)
+    if not best:
+        return {"found": False}
+
+    it = best[1]
+    apr = (it.get("useAprDay") or "").strip()
+    if len(apr) == 8 and apr.isdigit():
+        apr = f"{apr[:4]}-{apr[4:6]}-{apr[6:]}"
+    ta = _to_float(it.get("totArea"))
+    return {
+        "found": True,
+        "use": (it.get("mainPurpsCdNm") or "").strip(),
+        "etc": (it.get("etcPurps") or "").strip(),
+        "totArea": ta,
+        "pyeong": round(ta / 3.3058, 1) if ta else None,
+        "grndFlr": (str(it.get("grndFlrCnt") or "")).strip(),
+        "ugrndFlr": (str(it.get("ugrndFlrCnt") or "")).strip(),
+        "strct": (it.get("strctCdNm") or "").strip(),
+        "useApr": apr,
+        "bldNm": (it.get("bldNm") or "").strip(),
+    }
+
+
+def enrich_with_bldg(shops):
+    """상가 목록에 건축물대장 정보 결합 (캐시 + 실행당 상한). 캐시는 반환·저장."""
+    cache = load_json(BLDG_CACHE_JSON, {})
+    lookups = 0
+    # 조회키별로 상가를 묶어 건물 1회 조회 → 같은 건물 상가에 공유
+    for s in shops:
+        key = _bldg_key(s)
+        if not key:
+            continue
+        ck = "|".join(key)
+        info = cache.get(ck)
+        if info is None and lookups < MAX_BLDG_LOOKUPS:
+            fetched = fetch_bldg_title(key)
+            if fetched is not None:      # None=실패는 캐시 안 함
+                cache[ck] = fetched
+                info = fetched
+            lookups += 1
+            time.sleep(0.12)
+        if info and info.get("found"):
+            s["bld_use"] = info.get("use") or info.get("etc") or ""
+            s["bld_totArea"] = info.get("totArea")
+            s["bld_pyeong"] = info.get("pyeong")
+            s["bld_grndFlr"] = info.get("grndFlr")
+            s["bld_ugrndFlr"] = info.get("ugrndFlr")
+            s["bld_useApr"] = info.get("useApr")
+            if not s.get("bld") and info.get("bldNm"):
+                s["bld"] = info["bldNm"]
+    with open(BLDG_CACHE_JSON, "w", encoding="utf-8") as f:
+        json.dump(cache, f, ensure_ascii=False, separators=(",", ":"))
+    enriched = sum(1 for s in shops if s.get("bld_totArea"))
+    print(f"  [건축물대장] 신규 조회 {lookups}건, 결합 {enriched}/{len(shops)}건 "
+          f"(캐시 {len(cache)}건)")
+    return cache
+
+
 def load_json(path, default):
     try:
         with open(path, encoding="utf-8") as f:
@@ -194,6 +315,10 @@ def main():
     if not cur_ids:
         print("수집 0건 — 인증키/네트워크/파라미터를 확인하세요. shops.json 미변경.")
         return
+
+    # 1-b) 건축물대장(표제부)으로 실제 건물정보 결합 (주용도/연면적·평수/층수/사용승인일)
+    if ENABLE_BLDG:
+        enrich_with_bldg(list(operating.values()))
 
     # 2) 이전 스냅샷과 차분 → 공실(폐업) 후보 갱신
     prev_snap = load_json(SNAPSHOT_JSON, {})
@@ -229,6 +354,21 @@ def main():
         item["months_vacant"] = months
         vacant_list.append(item)
     vacant_list.sort(key=lambda x: x.get("first_missing", ""), reverse=True)
+
+    # 2-b) 시계열 누적: 이번 실행의 지역별 공실 수를 vacant_history.json에 append
+    #      (같은 날짜는 최신값으로 덮어써 중복 방지)
+    region_counts = {}
+    for v in vacant_list:
+        rk = v.get("adong") or v.get("signgu") or "기타"
+        region_counts[rk] = region_counts.get(rk, 0) + 1
+    today = now.strftime("%Y-%m-%d")
+    history = load_json(VACANT_HISTORY_JSON, {"series": []})
+    series = [pt for pt in history.get("series", []) if pt.get("date") != today]
+    series.append({"date": today, "total": len(vacant_list), "regions": region_counts})
+    series.sort(key=lambda p: p.get("date", ""))
+    history = {"series": series[-260:]}  # 최근 260개 지점(약 5년치 주간)만 보관
+    with open(VACANT_HISTORY_JSON, "w", encoding="utf-8") as f:
+        json.dump(history, f, ensure_ascii=False, separators=(",", ":"))
 
     # 3) 지도용 shops.json 작성
     operating_list = list(operating.values())

@@ -33,14 +33,22 @@
 2. **수집 실행**: Actions의 "빈 상가 데이터 자동 갱신" 워크플로를 `workflow_dispatch`로 1회 실행 → `data/shops.json` 실데이터 생성(매주 월 09:10 KST 자동 갱신).
 3. 실행 전에도 **샘플 데이터**(`scripts/gen_sample_shops.py` 생성물)로 지도가 바로 보입니다. 상단에 "샘플 데이터" 배지가 뜨며, 위 수집 1회로 교체됩니다.
 
+### 🏗️ 건물정보 결합 (국토교통부 건축HUB 건축물대장)
+`getBrTitleInfo`(표제부)로 각 상가에 **실제 건물정보**를 붙입니다 — 주용도·**연면적(평)**·지상/지하 층수·사용승인일. 상가의 법정동코드+지번으로 건물을 매칭하며, 결과는 `data/bldg_cache.json`에 캐시하고 실행당 조회 수를 제한(`MAX_BLDG_LOOKUPS`, 기본 800)합니다.
+- **인증키**: data.go.kr **일반 인증키는 계정당 1개로 모든 승인 API에 공용** → `SEMAS_API_KEY`를 그대로 재사용합니다. (원하면 `MOLIT_BLD_API_KEY` secret으로 분리 가능)
+- 주의: 표제부의 연면적은 **건물 전체** 기준입니다. **점포별 전용면적·임대료·연락처는 여전히 공공데이터에 없어** 매물 링크로 안내합니다(허위 생성 금지).
+
+### 📈 지역별 공실 추이 (시계열)
+수집 때마다 지역별 공실 추정 수를 `data/vacant_history.json`에 누적합니다. 지도 상단 **"📈 공실 추이"** 버튼 → 의존성 없는 SVG 라인차트(지역별 다중선, 범례 클릭으로 켜기/끄기). 데이터가 쌓일수록(주간 실행) 추세가 뚜렷해집니다.
+
 ### 조회 지역 편집
 `scripts/fetch_shops.py`의 `CENTERS`(상권 중심 좌표 + 반경) 목록을 수정하면 됩니다. 반경 조회라 좌표만 있으면 되고, 원하는 상권을 자유롭게 추가하세요.
 
 ### 관련 파일
-- `shops.html` — 지도 UI(클러스터링·업종필터·검색·공실 강조·**지역별 공실 밀집도 그라데이션**: 공실이 많은 지역일수록 초록→주황→빨강으로 진하게 표시)
-- `scripts/fetch_shops.py` — 실데이터 수집 + 공실 차분
+- `shops.html` — 지도 UI(클러스터링·업종필터·검색·공실 강조·**지역별 공실 밀집도 그라데이션**·**건물정보 팝업**·**공실 추이 차트**)
+- `scripts/fetch_shops.py` — 실데이터 수집 + 공실 차분 + 건축물대장 결합 + 시계열 누적
 - `scripts/gen_sample_shops.py` — 데모용 샘플 생성(네트워크 불필요)
-- `data/shops.json`(지도용) · `data/shops_snapshot.json`·`data/vacant.json`(차분 상태)
+- `data/shops.json`(지도용) · `data/shops_snapshot.json`·`data/vacant.json`(차분) · `data/bldg_cache.json`(건물 캐시) · `data/vacant_history.json`(시계열)
 - `.github/workflows/update_shops.yml` — 자동 갱신
 
 ## 내 갈아타기 분석

@@ -22,15 +22,17 @@ jobs:
       - name: 의존성 설치
         run: pip install requests
 
-      - name: 상가 데이터 수집 + 공실 차분
+      - name: 상가 데이터 수집 + 공실 차분 + 건축물대장 결합
         env:
           SEMAS_API_KEY: ${{ secrets.SEMAS_API_KEY }}
+          # 건축물대장 키를 따로 쓰려면 등록(미설정 시 SEMAS_API_KEY 재사용 — 일반 인증키는 공용)
+          MOLIT_BLD_API_KEY: ${{ secrets.MOLIT_BLD_API_KEY }}
         run: python scripts/fetch_shops.py
 
       - name: 변경사항 커밋 및 푸시
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/shops.json data/shops_snapshot.json data/vacant.json
+          git add data/shops.json data/shops_snapshot.json data/vacant.json data/bldg_cache.json data/vacant_history.json
           git diff --staged --quiet || git commit -m "빈 상가 데이터 갱신: $(date +'%Y-%m-%d %H:%M KST')"
           git push

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>서울·경기 빈 상가 맵</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&family=Nanum+Myeongjo:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+  <style>
+    :root{
+      --primary:#1a73e8; --vacant:#e53e3e; --op:#2f855a; --bg:#f0f4f8;
+      --card:#fff; --border:#e2e8f0; --text:#1a202c; --muted:#5f6368;
+      --shadow:0 2px 10px rgba(0,0,0,.1); --radius:12px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    html,body{height:100%;}
+    body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);font-size:14px;display:flex;flex-direction:column;}
+
+    header{
+      background:linear-gradient(135deg,#1a73e8,#0d47a1);color:#fff;
+      padding:11px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+      box-shadow:0 2px 12px rgba(0,0,0,.2);z-index:1200;
+    }
+    header h1{font-size:16px;font-weight:700;font-family:'Nanum Myeongjo',serif;}
+    header h1 span{font-size:11px;font-weight:400;opacity:.85;margin-left:6px;}
+    .hdr-btn{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.5);color:#fff;border-radius:20px;padding:5px 12px;font-size:12px;cursor:pointer;text-decoration:none;}
+    .hdr-right{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12px;opacity:.95;}
+    .badge{background:#ff6d00;padding:3px 9px;border-radius:5px;font-size:11px;font-weight:700;}
+
+    .wrap{flex:1;display:flex;min-height:0;}
+    .panel{width:300px;background:var(--card);border-right:1px solid var(--border);padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;}
+    #map{flex:1;min-width:0;}
+
+    .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+    .stat{background:var(--bg);border-radius:10px;padding:10px;text-align:center;}
+    .stat .v{font-size:20px;font-weight:700;}
+    .stat.op .v{color:var(--op);} .stat.va .v{color:var(--vacant);}
+    .stat .l{font-size:11px;color:var(--muted);margin-top:2px;}
+
+    .sec h3{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.03em;}
+    .search{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:9px;font-size:13px;}
+    .toggles label{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px;cursor:pointer;}
+    .dot{width:13px;height:13px;border-radius:50%;flex:none;}
+    .dot.op{background:var(--op);} .dot.va{background:var(--vacant);border:2px solid #fff;box-shadow:0 0 0 1px var(--vacant);}
+    .chips{display:flex;flex-wrap:wrap;gap:6px;}
+    .chip{border:1px solid var(--border);background:#fff;border-radius:16px;padding:5px 11px;font-size:12px;cursor:pointer;user-select:none;}
+    .chip.on{background:var(--primary);color:#fff;border-color:var(--primary);}
+
+    .note{font-size:11px;color:var(--muted);line-height:1.55;background:var(--bg);border-radius:10px;padding:10px;}
+    .note b{color:var(--text);}
+
+    /* 팝업 */
+    .pop{min-width:230px;max-width:260px;font-family:'Noto Sans KR',sans-serif;}
+    .pop .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+    .pop h4{font-size:15px;color:var(--text);line-height:1.3;}
+    .pop .st{font-size:11px;font-weight:700;padding:2px 7px;border-radius:5px;white-space:nowrap;flex:none;}
+    .pop .st.op{background:#e6fffa;color:var(--op);}
+    .pop .st.va{background:#fff5f5;color:var(--vacant);}
+    .pop .cat{font-size:11px;color:var(--muted);margin-top:3px;}
+    .pop .rows{font-size:12.5px;color:#333;line-height:1.7;margin-top:8px;}
+    .pop .rows .k{color:var(--muted);}
+    .pop .hl{color:var(--vacant);font-weight:700;}
+    .pop .na{margin-top:8px;font-size:11px;color:var(--muted);background:#f7fafc;border-radius:7px;padding:7px;line-height:1.5;}
+    .pop .links{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap;}
+    .pop .links a{flex:1;text-align:center;font-size:11.5px;font-weight:700;text-decoration:none;padding:7px 4px;border-radius:7px;background:#edf2f7;color:#2d3748;}
+    .pop .links a.k{background:#fee500;color:#191600;}
+
+    .marker-va{background:var(--vacant);width:15px;height:15px;border-radius:50%;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);}
+    .marker-op{background:var(--op);width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.35);}
+
+    .panel-toggle{display:none;}
+    @media(max-width:760px){
+      .wrap{flex-direction:column;}
+      .panel{width:100%;max-height:44vh;border-right:none;border-bottom:1px solid var(--border);}
+      #map{min-height:56vh;}
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🏪 서울·경기 빈 상가 맵 <span>소상공인 상가정보 · 공실 추정</span></h1>
+  <a href="./index.html" class="hdr-btn">🏙️ 아파트 실거래가</a>
+  <div class="hdr-right">
+    <span id="sample-badge" class="badge" style="display:none">샘플 데이터</span>
+    <span id="updated">로딩 중…</span>
+  </div>
+</header>
+
+<div class="wrap">
+  <aside class="panel">
+    <div class="stats">
+      <div class="stat op"><div class="v" id="op-count">–</div><div class="l">영업중 상가</div></div>
+      <div class="stat va"><div class="v" id="va-count">–</div><div class="l">공실 추정</div></div>
+    </div>
+
+    <div class="sec">
+      <h3>검색</h3>
+      <input class="search" id="search" placeholder="상호·주소·업종 검색"/>
+    </div>
+
+    <div class="sec toggles">
+      <h3>표시</h3>
+      <label><input type="checkbox" id="t-op" checked><span class="dot op"></span> 영업중 상가</label>
+      <label><input type="checkbox" id="t-va" checked><span class="dot va"></span> 공실 추정 상가</label>
+    </div>
+
+    <div class="sec">
+      <h3>업종 (영업중)</h3>
+      <div class="chips" id="chips"></div>
+    </div>
+
+    <div class="note" id="note">
+      <b>데이터 안내</b><br>
+      출처: 소상공인시장진흥공단 상가(상권)정보(공공데이터포털).
+      이 데이터엔 <b>임대료·보증금·연락처·전용면적(평수)</b>이 없습니다 —
+      해당 항목은 마커의 <b>매물 검색 링크</b>로 안내합니다.
+      <b>공실</b>은 이전 조회 대비 사라진 업소를 추정한 값입니다.
+    </div>
+  </aside>
+
+  <div id="map"></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const map = L.map('map', {center:[37.35,127.05], zoom:10, preferCanvas:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom:19, attribution:'&copy; OpenStreetMap'
+}).addTo(map);
+
+const opCluster = L.markerClusterGroup({maxClusterRadius:50, chunkedLoading:true});
+const vaLayer = L.layerGroup();
+map.addLayer(opCluster); map.addLayer(vaLayer);
+
+let DATA = {operating:[], vacant:[]};
+let activeInds = new Set();   // 비어있으면 전체 표시
+let query = '';
+
+const esc = s => (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const naverUrl = a => `https://search.naver.com/search.naver?query=${encodeURIComponent((a||'')+' 상가 임대')}`;
+const kakaoUrl = a => `https://map.kakao.com/?q=${encodeURIComponent(a||'')}`;
+
+function cat(s){ return [s.indsL,s.indsM,s.indsS].filter(Boolean).join(' › '); }
+function addr(s){ return s.addr_road || s.addr_jibun || ''; }
+
+function popupHtml(s, vacant){
+  const a = addr(s);
+  const st = vacant
+    ? `<span class="st va">공실추정</span>`
+    : `<span class="st op">영업중</span>`;
+  const vacRow = vacant
+    ? `<div><span class="k">⏳ 공실 감지:</span> <span class="hl">약 ${s.months_vacant||0}개월</span> <span class="k">(${esc(s.first_missing||'')} ~)</span></div>`
+    : '';
+  return `<div class="pop">
+    <div class="top"><h4>${esc(s.name||'(상호미상)')}</h4>${st}</div>
+    <div class="cat">${esc(cat(s))||'업종미상'}</div>
+    <div class="rows">
+      <div><span class="k">📍 주소:</span> ${esc(a)||'-'}</div>
+      <div><span class="k">🏢 층:</span> ${esc(s.flr||'-')}${s.bld?` · ${esc(s.bld)}`:''}</div>
+      ${vacRow}
+    </div>
+    <div class="na">평수·임대료·보증금·연락처는 공공데이터에 없습니다 → 아래에서 매물 확인</div>
+    <div class="links">
+      <a class="" target="_blank" rel="noopener" href="${naverUrl(a||s.name)}">네이버 매물</a>
+      <a class="k" target="_blank" rel="noopener" href="${kakaoUrl(a||s.name)}">카카오맵</a>
+    </div>
+  </div>`;
+}
+
+function passFilter(s){
+  if(query){
+    const hay = (s.name+' '+addr(s)+' '+cat(s)).toLowerCase();
+    if(!hay.includes(query)) return false;
+  }
+  if(activeInds.size && !activeInds.has(s.indsL||'기타')) return false;
+  return true;
+}
+
+function render(){
+  opCluster.clearLayers(); vaLayer.clearLayers();
+  if(document.getElementById('t-op').checked){
+    const ms=[];
+    const opIcon=L.divIcon({className:'',html:'<div class="marker-op"></div>',iconSize:[12,12],iconAnchor:[6,6]});
+    for(const s of DATA.operating){
+      if(!passFilter(s)) continue;
+      const m=L.marker([s.lat,s.lon],{icon:opIcon});
+      m.bindPopup(popupHtml(s,false));
+      ms.push(m);
+    }
+    opCluster.addLayers(ms);
+  }
+  if(document.getElementById('t-va').checked){
+    for(const s of DATA.vacant){
+      if(query){ const hay=(s.name+' '+addr(s)+' '+cat(s)).toLowerCase(); if(!hay.includes(query)) continue; }
+      const m=L.marker([s.lat,s.lon],{icon:L.divIcon({className:'',html:'<div class="marker-va"></div>',iconSize:[15,15],iconAnchor:[7,7]})});
+      m.bindPopup(popupHtml(s,true));
+      vaLayer.addLayer(m);
+    }
+  }
+}
+
+function buildChips(counts){
+  const box=document.getElementById('chips');
+  const entries=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  box.innerHTML='';
+  for(const [name,n] of entries){
+    const c=document.createElement('span');
+    c.className='chip'; c.textContent=`${name} ${n}`;
+    c.onclick=()=>{ c.classList.toggle('on');
+      if(c.classList.contains('on')) activeInds.add(name); else activeInds.delete(name);
+      render();
+    };
+    box.appendChild(c);
+  }
+}
+
+fetch('./data/shops.json?_='+Date.now())
+  .then(r=>r.json())
+  .then(d=>{
+    DATA=d;
+    const m=d.meta||{};
+    document.getElementById('op-count').textContent=(m.operating_count??d.operating.length).toLocaleString();
+    document.getElementById('va-count').textContent=(m.vacant_count??d.vacant.length).toLocaleString();
+    document.getElementById('updated').textContent='갱신: '+(m.generated_at||'-');
+    if(m.sample) document.getElementById('sample-badge').style.display='inline-block';
+    buildChips(m.inds_counts||{});
+    render();
+    // 데이터 범위로 지도 맞춤
+    const pts=[...d.operating,...d.vacant].map(s=>[s.lat,s.lon]);
+    if(pts.length) map.fitBounds(pts,{padding:[30,30],maxZoom:13});
+  })
+  .catch(e=>{
+    document.getElementById('updated').textContent='데이터 로드 실패';
+    document.getElementById('note').innerHTML='<b>데이터를 불러오지 못했습니다.</b><br>data/shops.json 이 있는지, GitHub Pages 경로가 맞는지 확인하세요. 콘솔: '+esc(String(e));
+  });
+
+document.getElementById('search').addEventListener('input',e=>{query=e.target.value.trim().toLowerCase();render();});
+document.getElementById('t-op').addEventListener('change',render);
+document.getElementById('t-va').addEventListener('change',render);
+</script>
+</body>
+</html>

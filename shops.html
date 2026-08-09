@@ -49,6 +49,11 @@
     .chip{border:1px solid var(--border);background:#fff;border-radius:16px;padding:5px 11px;font-size:12px;cursor:pointer;user-select:none;}
     .chip.on{background:var(--primary);color:#fff;border-color:var(--primary);}
 
+    .grad-legend{margin-top:6px;font-size:11px;color:var(--muted);}
+    .grad-bar{height:12px;border-radius:6px;margin:5px 0 3px;
+      background:linear-gradient(90deg,#2f855a,#f6ad55,#e53e3e);}
+    .grad-ends{display:flex;justify-content:space-between;}
+
     .note{font-size:11px;color:var(--muted);line-height:1.55;background:var(--bg);border-radius:10px;padding:10px;}
     .note b{color:var(--text);}
 
@@ -106,6 +111,10 @@
       <h3>표시</h3>
       <label><input type="checkbox" id="t-op" checked><span class="dot op"></span> 영업중 상가</label>
       <label><input type="checkbox" id="t-va" checked><span class="dot va"></span> 공실 추정 상가</label>
+      <label><input type="checkbox" id="t-den" checked>🔥 공실 밀집도(지역별)</label>
+      <div class="grad-legend">지역 공실 수에 따라 색 진하게</div>
+      <div class="grad-bar"></div>
+      <div class="grad-ends"><span>적음</span><span>많음</span></div>
     </div>
 
     <div class="sec">
@@ -134,8 +143,9 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 const opCluster = L.markerClusterGroup({maxClusterRadius:50, chunkedLoading:true});
+const denLayer = L.layerGroup();   // 지역별 공실 밀집도(그라데이션) — 마커 아래에 깔림
 const vaLayer = L.layerGroup();
-map.addLayer(opCluster); map.addLayer(vaLayer);
+map.addLayer(opCluster); map.addLayer(denLayer); map.addLayer(vaLayer);
 
 let DATA = {operating:[], vacant:[]};
 let activeInds = new Set();   // 비어있으면 전체 표시
@@ -170,6 +180,38 @@ function popupHtml(s, vacant){
       <a class="k" target="_blank" rel="noopener" href="${kakaoUrl(a||s.name)}">카카오맵</a>
     </div>
   </div>`;
+}
+
+// ── 지역별 공실 밀집도(그라데이션) ──────────────────────────────
+const regionKey = s => s.adong || s.signgu || '기타';
+const lerp = (a,b,t)=>Math.round(a+(b-a)*t);
+function gradColor(t){ // t 0..1 : 초록→주황→빨강
+  const g=[47,133,90], a=[246,173,85], r=[229,62,62];
+  let c1,c2,tt;
+  if(t<0.5){c1=g;c2=a;tt=t/0.5;} else {c1=a;c2=r;tt=(t-0.5)/0.5;}
+  return `rgb(${lerp(c1[0],c2[0],tt)},${lerp(c1[1],c2[1],tt)},${lerp(c1[2],c2[2],tt)})`;
+}
+function buildDensity(){
+  denLayer.clearLayers();
+  const g={};
+  for(const s of DATA.vacant){
+    const k=regionKey(s);
+    if(!g[k]) g[k]={name:k,n:0,lat:0,lon:0};
+    g[k].n++; g[k].lat+=s.lat; g[k].lon+=s.lon;
+  }
+  const arr=Object.values(g);
+  if(!arr.length) return;
+  const max=Math.max(...arr.map(x=>x.n));
+  for(const x of arr){
+    const t = max>1 ? (x.n-1)/(max-1) : 1;   // 1곳=초록, 최다=빨강
+    const c=L.circleMarker([x.lat/x.n, x.lon/x.n],{
+      radius:14+Math.sqrt(x.n)*7, color:'#fff', weight:1.5,
+      fillColor:gradColor(t), fillOpacity:.5,
+    });
+    c.bindPopup(`<div class="pop"><h4>${esc(x.name)}</h4>
+      <div class="rows"><div><span class="k">🏚️ 공실 추정:</span> <span class="hl">${x.n}곳</span></div></div></div>`);
+    denLayer.addLayer(c);
+  }
 }
 
 function passFilter(s){
@@ -230,6 +272,7 @@ fetch('./data/shops.json?_='+Date.now())
     if(m.sample) document.getElementById('sample-badge').style.display='inline-block';
     buildChips(m.inds_counts||{});
     render();
+    buildDensity();
     // 데이터 범위로 지도 맞춤
     const pts=[...d.operating,...d.vacant].map(s=>[s.lat,s.lon]);
     if(pts.length) map.fitBounds(pts,{padding:[30,30],maxZoom:13});
@@ -242,6 +285,9 @@ fetch('./data/shops.json?_='+Date.now())
 document.getElementById('search').addEventListener('input',e=>{query=e.target.value.trim().toLowerCase();render();});
 document.getElementById('t-op').addEventListener('change',render);
 document.getElementById('t-va').addEventListener('change',render);
+document.getElementById('t-den').addEventListener('change',e=>{
+  if(e.target.checked) map.addLayer(denLayer); else map.removeLayer(denLayer);
+});
 </script>
 </body>
 </html>
